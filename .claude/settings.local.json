@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(/home/dominik/go/bin/bd --version 2>/dev/null || /home/dominik/go/bin/bd version 2>/dev/null)"
+    ]
+  }
+}

@@ -1,0 +1,12 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Run Flask (piniu2)",
+			"type": "shell",
+			"command": "cd piniu2/flask-piniu && FLASK_APP=microblog.py venv/bin/flask run",
+			"isBackground": true,
+			"problemMatcher": []
+		}
+	]
+}
