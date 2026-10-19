@@ -1,5 +1,5 @@
 #lang pollen
-£(define-meta template "../template-tiles.html.p")
+£(define-meta layout "tiles")
 £(define-meta title "Tiles")
 
 £tile-grid{

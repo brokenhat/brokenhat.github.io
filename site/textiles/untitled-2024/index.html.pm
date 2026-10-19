@@ -1,5 +1,5 @@
 #lang pollen
-£(define-meta template "template-piece.html.p")
+£(define-meta layout "piece")
 £(define-meta title "Untitled, 2024")
 
 £piece[#:title "Untitled, 2024"

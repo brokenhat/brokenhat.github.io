@@ -35,11 +35,26 @@
                           #:string-proc (compose1 smart-quotes smart-dashes))))
 
 ;; ─── navigation helpers ──────────────────────────────────────────────
-(provide site-nav-items copyright-year subpages)
+(provide site-nav-items copyright-year subpages page-layout)
 (require pollen/pagetree pollen/template pollen/core racket/date racket/runtime-path)
 
 (define (copyright-year)
   (number->string (date-year (current-date))))
+
+;; ─── page layouts ────────────────────────────────────────────────────
+;; One template (template.html.p) serves every page. A page picks its
+;; layout with £(define-meta layout "piece") or "tiles"; without it, it's
+;; a plain page. (Per-page templates via define-meta template resolve
+;; relative to the page's folder, so they broke for pages in subfolders.)
+(define layouts '("page" "piece" "tiles"))
+
+(define (page-layout metas)
+  (define layout (hash-ref metas 'layout #f))
+  (cond [(member layout layouts) layout]
+        [else
+         (when layout
+           (eprintf "page-layout: unknown layout ~s (use one of ~s)\n" layout layouts))
+         "page"]))
 
 ;; Safe meta lookup — returns #f if source file not accessible.
 ;; The path is made absolute: a relative one resolves against the page

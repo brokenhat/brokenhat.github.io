@@ -14,9 +14,7 @@ Static portfolio site built with [Pollen](https://docs.racket-lang.org/pollen/) 
 site/
   pollen.rkt               root config (setup, decoder, helpers)
   index.ptree               navigation hierarchy
-  template.html.p           default HTML template
-  template-piece.html.p     piece page template
-  template-tiles.html.p     tile-grid page template
+  template.html.p           the one HTML template (layout chosen per page)
 
   index.html.pm             homepage
   about.html.pm             artist statement
@@ -111,15 +109,13 @@ See it working: `example/tiles.html.pm` → http://localhost:8080/example/tiles.
 
    ```
    #lang pollen
-   £(define-meta template "../template-tiles.html.p")
+   £(define-meta layout "tiles")
    £(define-meta title "Grid")
 
    £tile-grid{
 
    }
    ```
-
-   The template path is relative to the file: `../` for a page one folder deep, `../../` for two.
 
 2. Put tiles between the `£tile-grid{` and `}` lines (see below).
 
@@ -220,7 +216,7 @@ Copies are remade when the original changes. Image paths must start with `/` (e.
 |------|------|
 | `lib/tiles.rkt` | The `£tile-grid`, `£tile`, `£sketch-page` tags |
 | `lib/thumbs.rkt` | Makes the resized image copies |
-| `template-tiles.html.p` | Page template (menu + full-height grid) |
+| `template.html.p` | With `layout "tiles"`: full-height grid, loads the tile CSS/JS |
 | `css/tiles.css` | Look of tiles and viewers |
 | `js/tile-grid.js` | Dragging, zooming, opening tiles |
 
@@ -332,9 +328,15 @@ Push to `main` branch. GitHub Actions will:
 3. Render all pages
 4. Deploy to GitHub Pages
 
-## Template selection
+The site is live at https://brokenhat.github.io/ (repository `brokenhat/brokenhat.github.io`).
 
-Pages use `template.html.p` by default. To use the piece template:
+## Page layouts
+
+Every page uses `template.html.p`. Pick a layout near the top of the page:
+
 ```
-£(define-meta template "template-piece.html.p")
+£(define-meta layout "piece")   ← a single work (adds class content--piece)
+£(define-meta layout "tiles")   ← a tile grid page (full-height grid + tile scripts)
 ```
+
+Without a `layout` line the page is a plain page. This works the same at any folder depth.
