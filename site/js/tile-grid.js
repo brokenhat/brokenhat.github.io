@@ -36,6 +36,7 @@
     this.momentumRaf = null;
     this.animRaf = null;
     this.suppressClick = false;
+    this.viewMoved = false; // set once the visitor pans or zooms
 
     this.nodes = [];
     this.byKey = new Map();
@@ -166,6 +167,7 @@
   };
 
   TileGrid.prototype.zoomBy = function (direction, anchor) {
+    this.viewMoved = true;
     const target = clamp(this.scale * (direction > 0 ? 1.15 : 1 / 1.15), this.minZoom(), MAX_ZOOM);
     if (!anchor) {
       // button/keyboard zoom: animate around the view centre
@@ -178,6 +180,7 @@
 
   // Whole map on screen, as blog-tile opens it (never above 1:1)
   TileGrid.prototype.fit = function (animate) {
+    this.viewMoved = false;
     const e = this.extents;
     const s = clamp(this.fitScale(), this.minZoom(), 1);
     const cx = (e.minX + e.maxX) / 2 * CELL_SPACING;
@@ -231,6 +234,7 @@
       e.preventDefault();
       this.cancelMotion();
       // trackpad pinch arrives as ctrl+wheel with small deltas
+      this.viewMoved = true;
       const factor = Math.exp(-e.deltaY * (e.ctrlKey ? 0.01 : 0.0015));
       this.setScale(this.scale * factor, { x: e.clientX, y: e.clientY });
     }, { passive: false });
@@ -255,15 +259,22 @@
       });
     });
 
+    // The grid's size changes on rotation, browser toolbars and late
+    // layout. Until the visitor moves the view, keep the whole map fitted
+    // (as blog-tile does); after that, keep their view.
     let resizeRaf = null;
-    window.addEventListener('resize', () => {
+    new ResizeObserver(() => {
       if (resizeRaf) cancelAnimationFrame(resizeRaf);
       resizeRaf = requestAnimationFrame(() => {
         this.layout();
-        this.applyBounds();
-        this.applyTransform();
+        if (this.viewMoved) {
+          this.applyBounds();
+          this.applyTransform();
+        } else {
+          this.fit(false);
+        }
       });
-    });
+    }).observe(this.viewport);
   };
 
   TileGrid.prototype.onPointerDown = function (e) {
@@ -301,6 +312,7 @@
 
     if (d.type === 'pinch') {
       if (this.pointers.size < 2) return;
+      this.viewMoved = true;
       const [a, b] = [...this.pointers.values()];
       const midX = (a.x + b.x) / 2;
       const midY = (a.y + b.y) / 2;
@@ -319,6 +331,7 @@
       this.viewport.classList.add('is-panning');
     }
     if (d.moved) {
+      this.viewMoved = true;
       this.panBy(dx, dy);
       const now = performance.now();
       const dt = now - d.lastTime;
@@ -394,6 +407,7 @@
       best = from;
     }
     if (best) {
+      this.viewMoved = true;
       this.select(best);
       this.centerOn(best);
       best.el.focus({ preventScroll: true });

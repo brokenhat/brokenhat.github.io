@@ -10,9 +10,19 @@
 }
 
 /* ─── page layout: grid fills the space between nav and footer ─── */
+/* The page is exactly one screen and never scrolls: only the grid moves.
+   (If it could scroll, a drag on the menu bar pushed the menu off-screen,
+   and a drag on the grid can't bring it back.) */
+html:has(> body.page--tiles),
+body.page--tiles {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
 body.page--tiles {
   height: 100vh;
   height: 100dvh;
+  min-height: 0; /* site.css sets 100vh, taller than the visible area on iOS */
 }
 
 main.content--tiles {
@@ -49,7 +59,7 @@ body.page--tiles footer {
 .tile-grid {
   position: relative;
   flex: 1;
-  min-height: 320px;
+  min-height: 0; /* shrinks to fit short screens instead of overflowing */
   border-top: 1px solid var(--tile-line);
   border-bottom: 1px solid var(--tile-line);
 }
@@ -74,7 +84,12 @@ body.page--tiles footer {
   will-change: transform;
 }
 
-/* without JS the plane is a simple wrapping grid */
+/* without JS the plane is a simple wrapping grid, scrolling inside the
+   grid area (the page itself doesn't scroll) */
+.tile-grid:not(.is-ready) {
+  overflow-y: auto;
+}
+
 .tile-grid:not(.is-ready) .tile-grid__viewport {
   position: static;
   overflow: auto;
