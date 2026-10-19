@@ -1,0 +1,66 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: Bogdanp/setup-racket@v1.11
+        with:
+          version: "9.3"
+
+      - name: Install Pollen
+        run: raco pkg install --auto pollen
+
+      # lib/thumbs.rkt resizes tile images while rendering
+      - name: Install ImageMagick
+        run: sudo apt-get update && sudo apt-get install -y imagemagick
+
+      - name: Render site
+        working-directory: site
+        run: raco pollen render -r .
+
+      - name: Collect output
+        run: |
+          mkdir -p _site
+          find site -name "*.html" -exec cp --parents {} _site/ \;
+          cp -r site/css _site/site/css
+          cp -r site/js _site/site/js
+          cp -r site/images _site/site/images
+          if [ -d site/thumbs ]; then cp -r site/thumbs _site/site/thumbs; fi
+          # Copy piece-level images
+          find site -path "*/images/*" -type f -exec cp --parents {} _site/ \;
+          # Flatten: move site/* to _site root
+          mv _site/site/* _site/
+          rmdir _site/site
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

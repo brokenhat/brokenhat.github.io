@@ -4,26 +4,28 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>£(or (select-from-metas 'title here) "Dominik Zarzycki")</title>
+  <script>document.documentElement.classList.add('js')</script>
   <link rel="stylesheet" href="/css/site.css">
 </head>
 <body>
   <header>
-    <nav class="site-nav">
+    <nav class="site-nav" aria-label="Main">
       <a class="site-name" href="/">Dominik Zarzycki</a>
-      <ul>
-        £(apply string-append (map ->html (site-nav-items)))
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-menu"><span class="nav-toggle__label">Menu</span><span class="nav-toggle__icon" aria-hidden="true"></span></button>
+      <ul id="site-menu">
+        £(apply string-append (map ->html (site-nav-items here)))
       </ul>
     </nav>
   </header>
 
   <main>
-    £(let ([bc (breadcrumb here)]) (if (string? bc) bc (->html bc)))
     £(apply string-append (map ->html (cdr doc)))
   </main>
 
   <footer>
     <p>£(copyright-year) Dominik Zarzycki</p>
   </footer>
+  <script src="/js/nav.js" defer></script>
   <script src="/js/viewer.js" defer></script>
 </body>
 </html>

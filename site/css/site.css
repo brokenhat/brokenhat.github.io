@@ -29,9 +29,18 @@ body {
   flex-direction: column;
 }
 
-/* ─── nav ───────────────────────────────────────────────────────── */
+/* ─── header + nav ──────────────────────────────────────────────── */
+/* Name on the left, links on the right. Sections with subpages open a
+   dropdown on hover or keyboard focus. Below 1120px, and on touch-only
+   screens of any size (no hover for dropdowns), the links collapse
+   into a Menu button (only when JS is on — see the inline script in the
+   templates; without JS the links simply wrap).                        */
 header {
-  padding: 2rem var(--page-gutter) 0;
+  position: relative;
+  z-index: 50;
+  /* hidden dropdown panels near the edge must not widen the page */
+  overflow-x: clip;
+  padding: 1.5rem var(--page-gutter) 0;
   max-width: 1400px;
   width: 100%;
   margin: 0 auto;
@@ -39,12 +48,15 @@ header {
 
 .site-nav {
   display: flex;
-  align-items: baseline;
-  gap: 2rem;
+  align-items: center;
+  justify-content: space-between;
   flex-wrap: wrap;
+  gap: 0.5rem 2rem;
+  min-height: 2.75rem;
 }
 
 .site-name {
+  flex-shrink: 0;
   font-size: 1rem;
   font-weight: 600;
   text-decoration: none;
@@ -55,9 +67,14 @@ header {
 
 .site-nav > ul {
   display: flex;
-  gap: 1.5rem;
-  list-style: none;
+  align-items: center;
   flex-wrap: wrap;
+  gap: 0 1.75rem;
+  list-style: none;
+}
+
+.site-nav > ul > li {
+  position: relative;
 }
 
 .site-nav a {
@@ -69,55 +86,284 @@ header {
   transition: color 0.15s;
 }
 
-.site-nav a:hover {
+.site-nav > ul > li > a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.75rem 0;
+}
+
+.site-nav a:hover,
+.site-nav a:focus-visible {
   color: var(--accent);
 }
 
-/* ─── dropdown ──────────────────────────────────────────────────── */
-.has-dropdown {
-  position: relative;
+/* the page you're on, and the section it belongs to */
+.site-nav a[aria-current="page"],
+.site-nav .is-active > a {
+  color: var(--text);
 }
 
+.site-nav > ul > li > a[aria-current="page"],
+.site-nav > ul > .is-active > a {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.45em;
+}
+
+/* chevron on sections that have subpages */
+.has-dropdown > a::after {
+  content: "";
+  width: 0.38em;
+  height: 0.38em;
+  border-right: 1px solid currentColor;
+  border-bottom: 1px solid currentColor;
+  transform: translateY(-30%) rotate(45deg);
+  transition: transform 0.15s;
+}
+
+.has-dropdown:hover > a::after,
+.has-dropdown:has(:focus-visible) > a::after {
+  transform: translateY(10%) rotate(-135deg);
+}
+
+/* ─── dropdown ──────────────────────────────────────────────────── */
 .dropdown {
-  display: none;
   position: absolute;
   top: 100%;
-  left: 0;
-  padding: 0.75rem 0 0;
-  flex-direction: column;
-  gap: 0;
-  min-width: 12rem;
+  left: -1rem;
   z-index: 100;
-}
-
-.dropdown::before {
-  content: "";
-  display: block;
-  height: 0.75rem;
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-}
-
-.dropdown li {
+  min-width: 13rem;
+  padding: 0.5rem 0;
+  list-style: none;
   background: var(--bg);
+  border: 1px solid rgba(26, 26, 26, 0.1);
+  border-radius: 4px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+  /* fade in; stay a moment after the pointer leaves so it doesn't flicker */
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(4px);
+  transition: opacity 0.15s ease, transform 0.15s ease, visibility 0s linear 0.2s;
+}
+
+/* last section: open leftwards so the panel stays on screen */
+.has-dropdown:last-child .dropdown {
+  left: auto;
+  right: -1rem;
+}
+
+.has-dropdown:hover .dropdown,
+.has-dropdown:has(:focus-visible) .dropdown {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition-delay: 0s;
 }
 
 .dropdown a {
   display: block;
-  padding: 0.4rem 0.75rem;
+  padding: 0.55rem 1rem;
   white-space: nowrap;
   font-size: 0.7rem;
-  color: var(--muted);
 }
 
 .dropdown a:hover {
-  color: var(--accent);
+  background: rgba(26, 26, 26, 0.04);
 }
 
-.has-dropdown:hover .dropdown {
-  display: flex;
+/* ─── menu button (collapsed nav) ───────────────────────────────── */
+.nav-toggle,
+.submenu-toggle {
+  display: none;
+}
+
+@media (max-width: 1120px), (hover: none) and (pointer: coarse) {
+  .js .nav-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.65rem;
+    min-height: 2.75rem;
+    padding: 0 0 0 0.75rem;
+    border: 0;
+    background: none;
+    color: var(--text);
+    font: inherit;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+  }
+
+  /* ☰ that turns into ✕ */
+  .nav-toggle__icon,
+  .nav-toggle__icon::before,
+  .nav-toggle__icon::after {
+    display: block;
+    width: 18px;
+    height: 1.5px;
+    background: currentColor;
+    transition: transform 0.2s ease, background-color 0.2s ease;
+  }
+
+  .nav-toggle__icon {
+    position: relative;
+  }
+
+  .nav-toggle__icon::before,
+  .nav-toggle__icon::after {
+    content: "";
+    position: absolute;
+    left: 0;
+  }
+
+  .nav-toggle__icon::before { top: -6px; }
+  .nav-toggle__icon::after { top: 6px; }
+
+  .nav-toggle[aria-expanded="true"] .nav-toggle__icon {
+    background-color: transparent;
+  }
+  .nav-toggle[aria-expanded="true"] .nav-toggle__icon::before {
+    transform: translateY(6px) rotate(45deg);
+  }
+  .nav-toggle[aria-expanded="true"] .nav-toggle__icon::after {
+    transform: translateY(-6px) rotate(-45deg);
+  }
+
+  .js .site-nav {
+    flex-wrap: nowrap;
+  }
+
+  /* the links become a panel under the header */
+  .js .site-nav > ul {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    align-items: stretch;
+    flex-wrap: nowrap;
+    gap: 0;
+    padding: 0.5rem var(--page-gutter) 1.25rem;
+    background: var(--bg);
+    border-bottom: 1px solid rgba(26, 26, 26, 0.1);
+    box-shadow: 0 16px 30px rgba(0, 0, 0, 0.08);
+    max-height: calc(100dvh - 5rem);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-6px);
+    transition: opacity 0.18s ease, transform 0.18s ease, visibility 0s linear 0.18s;
+  }
+
+  .js .nav-toggle[aria-expanded="true"] + ul {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    transition-delay: 0s;
+  }
+
+  .js .site-nav > ul > li + li {
+    border-top: 1px solid rgba(26, 26, 26, 0.07);
+  }
+
+  .js .site-nav > ul > li > a {
+    display: flex;
+    padding: 0.9rem 0;
+    font-size: 0.8rem;
+  }
+
+  .js .site-nav > ul > li > a[aria-current="page"],
+  .js .site-nav > ul > .is-active > a {
+    text-decoration: none;
+  }
+
+  /* sections with subpages: link + ⌄ button on one row; the button
+     expands the subpages underneath (accordion) */
+  .js .has-dropdown > a::after {
+    display: none;
+  }
+
+  .js .site-nav .has-dropdown {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+  }
+
+  .js .site-nav .submenu-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    margin-right: -0.75rem;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--muted);
+    cursor: pointer;
+  }
+
+  .js .site-nav .submenu-toggle::before {
+    content: "";
+    width: 0.45rem;
+    height: 0.45rem;
+    border-right: 1.5px solid currentColor;
+    border-bottom: 1.5px solid currentColor;
+    transform: translateY(-25%) rotate(45deg);
+    transition: transform 0.2s ease;
+  }
+
+  .js .site-nav .submenu-toggle[aria-expanded="true"]::before {
+    transform: translateY(25%) rotate(-135deg);
+  }
+
+  .js .site-nav .submenu-toggle[aria-expanded="false"] + .dropdown {
+    display: none;
+  }
+
+  .js .dropdown {
+    grid-column: 1 / -1;
+    position: static;
+    min-width: 0;
+    padding: 0 0 0.75rem 1rem;
+    background: none;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    opacity: 1;
+    visibility: inherit;
+    transform: none;
+    transition: none;
+  }
+
+  .js .dropdown a {
+    padding: 0.6rem 0;
+    font-size: 0.75rem;
+  }
+
+  .js .dropdown a:hover {
+    background: none;
+  }
+}
+
+/* page behind the open phone menu doesn't scroll */
+html.menu-open,
+html.menu-open body {
+  overflow: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dropdown,
+  .submenu-toggle::before,
+  .site-nav > ul,
+  .has-dropdown > a::after,
+  .nav-toggle__icon,
+  .nav-toggle__icon::before,
+  .nav-toggle__icon::after {
+    transition: none !important;
+  }
 }
 
 /* ─── main ──────────────────────────────────────────────────────── */
@@ -185,24 +431,6 @@ main h3 {
   color: var(--accent);
 }
 
-/* ─── breadcrumb ────────────────────────────────────────────────── */
-.breadcrumb {
-  font-size: 0.75rem;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  margin-bottom: 2rem;
-}
-
-.breadcrumb a {
-  color: var(--muted);
-  text-decoration: none;
-}
-
-.breadcrumb a:hover {
-  color: var(--accent);
-}
-
 /* ─── piece ─────────────────────────────────────────────────────── */
 .piece {
   margin-bottom: 3rem;
@@ -211,6 +439,11 @@ main h3 {
 .piece h2 {
   font-size: 1.1rem;
   margin-bottom: 1.5rem;
+}
+
+/* the piece title is the first thing on the page: line up with other pages */
+main > .piece:first-child > h2:first-child {
+  margin-top: 0;
 }
 
 .piece-meta {
@@ -222,14 +455,28 @@ main h3 {
   margin-bottom: 2rem;
 }
 
+.meta-pair {
+  display: inline-flex;
+  gap: 0.4rem;
+  align-items: baseline;
+  min-width: 0;
+  max-width: 100%;
+}
+
 .piece-meta dt {
   text-transform: uppercase;
   letter-spacing: 0.06em;
   font-weight: 600;
+  white-space: nowrap;
 }
 
+.piece-meta dt::after {
+  content: ":";
+}
+
+/* long values (exhibition names) wrap instead of widening the page */
 .piece-meta dd {
-  margin-right: 1rem;
+  overflow-wrap: anywhere;
 }
 
 .piece-body {
@@ -416,6 +663,19 @@ a:hover {
   color: var(--accent);
 }
 
+/* ─── youtube embed ────────────────────────────────────────────── */
+.youtube-embed {
+  max-width: var(--measure);
+  margin: var(--gap) 0;
+  aspect-ratio: 16 / 9;
+}
+
+.youtube-embed iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
 /* ─── footer ────────────────────────────────────────────────────── */
 footer {
   padding: 3rem var(--page-gutter) 2rem;
@@ -437,13 +697,8 @@ footer {
 
 /* ─── responsive: mobile ────────────────────────────────────────── */
 @media (max-width: 600px) {
-  .site-nav {
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-
-  .site-nav ul {
-    gap: 1rem;
+  header {
+    padding-top: 1rem;
   }
 
   .gallery {
@@ -451,8 +706,7 @@ footer {
   }
 
   .piece-meta {
-    flex-direction: column;
-    gap: 0.25rem;
+    gap: 0.15rem 1rem;
   }
 
   .cv-entry {
@@ -486,10 +740,11 @@ footer {
 .viewer {
   display: flex;
   gap: 1.5rem;
-  max-width: 90vw;
-  max-height: 90vh;
+  width: 90vw;
+  height: 90vh;
   margin: auto;
   padding: 1rem;
+  pointer-events: none;
 }
 
 .viewer-detail {
@@ -498,12 +753,20 @@ footer {
   align-items: center;
   justify-content: center;
   min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  pointer-events: auto;
 }
 
 .viewer-detail canvas {
-  max-width: 100%;
-  max-height: 90vh;
   display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.viewer-fullview {
+  display: none;
 }
 
 .viewer-nav-panel {
@@ -512,6 +775,7 @@ footer {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  pointer-events: auto;
 }
 
 .viewer-navigator {
@@ -524,11 +788,13 @@ footer {
   display: block;
 }
 
+/* image stays at full strength; the frame alone marks the area —
+   white with a thin dark edge so it shows on light and dark images */
 .viewer-loupe {
   position: absolute;
-  border: 2px solid rgba(255,255,255,0.8);
+  border: 2px solid #fff;
   pointer-events: none;
-  box-shadow: 0 0 0 9999px rgba(0,0,0,0.35);
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(0,0,0,0.6);
 }
 
 .viewer-caption {
@@ -552,6 +818,7 @@ footer {
   border-radius: 3px;
   transition: background 0.15s;
   line-height: 1;
+  pointer-events: auto;
 }
 
 .viewer-btn:hover {
@@ -568,52 +835,91 @@ footer {
   padding: 0.2rem 0.6rem;
 }
 
-.viewer-scale-toggle {
+.viewer-loupe-size {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.7rem;
+  color: #aaa;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.viewer-loupe-size input {
+  flex: 1;
+  min-width: 0;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.viewer-expand {
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  align-self: flex-start;
 }
 
-.viewer-scale-wrap {
+/* ── expanded: full image at screen height ─────────────────────── */
+.viewer.viewer--expanded {
+  justify-content: center;
+}
+
+.viewer.viewer--expanded .viewer-nav-panel {
   display: none;
 }
 
-.viewer-scale-wrap.open {
-  display: block;
+.viewer.viewer--expanded .viewer-detail {
+  flex: none;
+  width: auto;
+  height: 100%;
 }
 
-.viewer-scale-svg {
-  display: block;
-  max-width: 100%;
+.viewer.viewer--expanded .viewer-detail canvas {
+  display: none;
 }
 
-/* ─── viewer responsive: mobile ────────────────────────────────── */
-@media (max-width: 768px) {
-  .viewer {
-    flex-direction: column-reverse;
-    max-width: 95vw;
-    max-height: 95vh;
-    overflow-y: auto;
-  }
+.viewer.viewer--expanded .viewer-fullview {
+  display: block;
+  max-width: 90vw;
+  max-height: 90vh;
+  object-fit: contain;
+}
 
-  .viewer-nav-panel {
-    width: 100%;
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
+/* ─── mobile lightbox ──────────────────────────────────────────── */
+.viewer-mobile-img {
+  max-width: 95vw;
+  max-height: 85vh;
+  object-fit: contain;
+  display: block;
+  margin: auto;
+  pointer-events: auto;
+  touch-action: none;
+  transform-origin: center center;
+  will-change: transform;
+}
 
-  .viewer-navigator {
-    flex: 1;
-    min-width: 200px;
-  }
+.viewer-mobile-caption {
+  position: fixed;
+  bottom: 3.5rem;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 0.8rem;
+  color: #aaa;
+  padding: 0 1rem;
+  pointer-events: none;
+}
 
-  .viewer-detail canvas {
-    max-height: 50vh;
-  }
+.viewer-mobile-nav {
+  position: fixed;
+  bottom: 1rem;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  pointer-events: none;
+}
 
-  .viewer-caption {
-    flex-basis: 100%;
-  }
+.viewer-mobile-nav .viewer-btn {
+  pointer-events: auto;
 }

@@ -9,39 +9,8 @@
 (provide piece gallery fig image process-note section-intro
          cv-section cv-entry exhibition award
          lede aside smallcaps blockquote link ext-link
+         youtube
          £ title)
-
-;; ─── parse-dimensions ────────────────────────────────────────────────
-;; Extract width and height (cm) from a dimensions string.
-;; Returns a list of attribute pairs, e.g. (["data-w" "100"] ["data-h" "80"])
-(define (parse-dimensions s)
-  (define num-rx "([0-9]+(?:[.][0-9]+)?)")
-  (cond
-    [(not (non-empty-string? s)) '()]
-    ;; "h:114 w:141" or "w:141 h:114"
-    [(regexp-match (pregexp (string-append "(?i:[hH])\\s*:\\s*" num-rx)) s)
-     => (lambda (mh)
-          (define h (cadr mh))
-          (define mw (regexp-match (pregexp (string-append "(?i:[wW])\\s*:\\s*" num-rx)) s))
-          (if mw
-              (list (list 'data-w (cadr mw)) (list 'data-h h))
-              (list (list 'data-h h))))]
-    [(regexp-match (pregexp (string-append "(?i:[wW])\\s*:\\s*" num-rx)) s)
-     => (lambda (mw)
-          (list (list 'data-w (cadr mw))))]
-    ;; "100cm x 110cm" or "100 x 110" — first number x second number
-    [(regexp-match (pregexp (string-append num-rx "\\s*(?:cm)?\\s*[xX\u00d7]\\s*" num-rx)) s)
-     => (lambda (m)
-          (list (list 'data-w (cadr m)) (list 'data-h (caddr m))))]
-    ;; "approx 200cm high" — only height
-    [(regexp-match (pregexp (string-append num-rx "\\s*(?:cm)?\\s*(?i:high)")) s)
-     => (lambda (m)
-          (list (list 'data-h (cadr m))))]
-    ;; "approx 200cm wide" — only width
-    [(regexp-match (pregexp (string-append num-rx "\\s*(?:cm)?\\s*(?i:wide)")) s)
-     => (lambda (m)
-          (list (list 'data-w (cadr m))))]
-    [else '()]))
 
 ;; ─── piece ───────────────────────────────────────────────────────────
 ;; Full piece page: title, metadata dl, and body
@@ -70,10 +39,9 @@
                   (and (non-empty-string? awd)        `("Award" ,awd))
                   (and (non-empty-string? status)     `("Status" ,status)))))
   (define dl-items
-    (append* (for/list ([p (in-list meta-pairs)])
-               (list `(dt ,(car p)) `(dd ,(cadr p))))))
-  (define dim-attrs (parse-dimensions dimensions))
-  `(article [[class "piece"] ,@dim-attrs]
+    (for/list ([p (in-list meta-pairs)])
+      `(div [[class "meta-pair"]] (dt ,(car p)) (dd ,(cadr p)))))
+  `(article [[class "piece"]]
             ,@(if (non-empty-string? title) (list `(h2 ,title)) empty)
             ,@(if (null? dl-items) empty (list `(dl [[class "piece-meta"]] ,@dl-items)))
             (div [[class "piece-body"]]
@@ -166,6 +134,15 @@
 
 (define (ext-link url . body)
   `(a [[href ,url] [target "_blank"] [rel "noopener"]] ,@body))
+
+;; ─── youtube ─────────────────────────────────────────────────────
+(define (youtube id . body)
+  `(div [[class "youtube-embed"]]
+        (iframe [[src ,(format "https://www.youtube.com/embed/~a" id)]
+                 [title "YouTube video"]
+                 [frameborder "0"]
+                 [allow "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"]
+                 [allowfullscreen "true"]])))
 
 ;; ─── literal £ ───────────────────────────────────────────────────────
 (define (£ . _) "£")

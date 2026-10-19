@@ -1,0 +1,19 @@
+#lang pollen
+
+index.html
+about.html
+cv.html
+paintings/index.html
+generative/index.html
+drawings/index.html
+highland-series/index.html
+  highland-series/rannoch-moor-swings.html
+  highland-series/buachaille-etive-mor.html
+  highland-series/lost-on-criese.html
+textiles/index.html
+  textiles/sofreh-interlace/index.html
+  textiles/blue-stem/index.html
+  textiles/untitled-2024/index.html
+example/index.html
+  example/subpage.html
+  example/tiles.html
