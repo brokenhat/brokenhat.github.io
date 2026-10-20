@@ -1,5 +1,5 @@
 /* ─── Menu button ──────────────────────────────────────────────────────── */
-/* Below 1120px, and on touch-only screens, the nav links collapse into a
+/* Below 1240px, and on touch-only screens, the nav links collapse into a
    panel (css/site.css, under .js). This only opens and closes it.          */
 document.addEventListener('DOMContentLoaded', function () {
   var nav = document.querySelector('.site-nav');
@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   // back to the full row (same query as css/site.css)
-  window.matchMedia('(max-width: 1120px), (hover: none) and (pointer: coarse)')
+  window.matchMedia('(max-width: 1240px), (hover: none) and (pointer: coarse)')
     .addEventListener('change', function (e) {
       if (!e.matches) setOpen(false);
     });

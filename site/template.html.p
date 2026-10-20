@@ -6,7 +6,10 @@
   <title>£(or (select-from-metas 'title here) "Dominik Zarzycki")</title>
   <script>document.documentElement.classList.add('js')</script>
   <link rel="stylesheet" href="/css/site.css">
-  £(if (equal? (page-layout metas) "tiles") "<link rel=\"stylesheet\" href=\"/css/tiles.css\">" "")
+  £(case (page-layout metas)
+     [("tiles") "<link rel=\"stylesheet\" href=\"/css/tiles.css\">"]
+     [("automata") "<link rel=\"stylesheet\" href=\"/css/automata.css\">"]
+     [else ""])
 </head>
 <body class="page--£(page-layout metas)">
   <header>
@@ -28,6 +31,9 @@
   </footer>
   <script src="/js/nav.js" defer></script>
   <script src="/js/viewer.js" defer></script>
-  £(if (equal? (page-layout metas) "tiles") "<script src=\"/js/tile-grid.js\" defer></script>" "")
+  £(case (page-layout metas)
+     [("tiles") "<script src=\"/js/tile-grid.js\" defer></script>"]
+     [("automata") "<script src=\"/js/woven-automata.js\" defer></script>"]
+     [else ""])
 </body>
 </html>
