@@ -8,71 +8,79 @@
 (provide woven-automata-app)
 
 (define modes
-  '(("random" "Random design")
-    ("good" "Search + evolve")
-    ("crystalline" "Crystalline (geometric)")
-    ("life" "Life (emergent)")
-    ("uniform" "Uniform rule + automaton")))
+  '(("random" "random")
+    ("good" "search + evolve")
+    ("crystalline" "crystalline")
+    ("life" "life")
+    ("uniform" "uniform rule")))
 
-(define (field label name min max value hint)
-  `(label [[class "wa-field"]]
-          (span [[class "wa-label"]] ,label)
-          (input [[type "number"] [name ,name] [min ,min] [max ,max] [step "1"]
-                  [value ,value] [inputmode "numeric"] [required ""]])
-          ,@(if hint (list `(span [[class "wa-hint"]] ,hint)) '())))
+;; Wolfram elementary CA rules offered by name; any 0–255 via "other"
+(define ca-rules
+  '(("auto" "auto (by kind)")
+    ("none" "none")
+    ("30" "30 chaos")
+    ("45" "45")
+    ("54" "54")
+    ("60" "60")
+    ("73" "73")
+    ("90" "90 sierpinski")
+    ("105" "105")
+    ("110" "110 gliders")
+    ("150" "150")
+    ("184" "184 traffic")
+    ("other" "other…")))
+
+(define (options pairs)
+  (for/list ([p (in-list pairs)])
+    `(option [[value ,(car p)]] ,(cadr p))))
+
+(define (row label control)
+  `(label [[class "wa-row"]] (span ,label) ,control))
+
+(define (number name min max value)
+  `(input [[type "number"] [name ,name] [min ,min] [max ,max] [step "1"]
+           [value ,value] [inputmode "numeric"] [required ""]]))
+
+(define (button act label [aria #f])
+  `(button [[type "button"] [data-act ,act] ,@(if aria `([aria-label ,aria]) '())] ,label))
 
 (define (woven-automata-app)
   `(div [[class "wa"] [data-decoded "true"]]
         (form [[class "wa-controls"] [aria-label "Design settings"]]
-              (label [[class "wa-field"]]
-                     (span [[class "wa-label"]] "Kind of design")
-                     (select [[name "mode"]]
-                             ,@(for/list ([m (in-list modes)])
-                                 `(option [[value ,(car m)]] ,(cadr m))))
-                     (span [[class "wa-hint"] [data-mode-hint ""]]))
-              ,(field "Warp threads" "width" "20" "200" "80" #f)
-              ,(field "Picks (rows)" "picks" "20" "1000" "500" #f)
-              ,(field "Starting bobbins" "bobbins" "3" "20" "8" "Varies ±3 per design.")
-              ,(field "Most bobbins" "max" "3" "40" "20" "Including ones born while weaving.")
-              (label [[class "wa-field"]]
-                     (span [[class "wa-label"]] "Borders between bobbins")
-                     (select [[name "border"]]
-                             (option [[value "slit"]] "Slit (gap left bare)")
-                             (option [[value "interlock"]] "Interlock (shared thread)")))
-              (div [[class "wa-field"]]
-                   (label [[for "wa-seed"] [class "wa-label"]] "Seed")
-                   (div [[class "wa-seed"]]
+              ,(row "kind" `(select [[name "mode"]] ,@(options modes)))
+              ,(row "warp" (number "width" "20" "200" "80"))
+              ,(row "picks" (number "picks" "20" "1000" "500"))
+              ,(row "bobbins" (number "bobbins" "2" "26" "8"))
+              ,(row "cap" (number "max" "2" "100" "20"))
+              ,(row "borders" `(select [[name "border"]]
+                                       (option [[value "slit"]] "slit")
+                                       (option [[value "interlock"]] "interlock")))
+              ,(row "ca rule" `(select [[name "ca"]] ,@(options ca-rules)))
+              (label [[class "wa-row"] [data-rule ""] [hidden ""]]
+                     (span "rule no.")
+                     ,(number "rule" "0" "255" "30"))
+              (div [[class "wa-row"]]
+                   (label [[for "wa-seed"]] "seed")
+                   (div [[class "wa-pair"]]
                         (input [[id "wa-seed"] [type "number"] [name "seed"] [min "1"] [max "999999"]
                                 [step "1"] [value "1"] [inputmode "numeric"] [required ""]])
-                        (button [[type "button"] [class "wa-button"] [data-act "seed"]] "New seed"))
-                   (span [[class "wa-hint"]] "Same settings + seed = same design."))
-              (div [[class "wa-actions"]]
-                   (button [[type "submit"] [class "wa-button wa-button--primary"]] "Generate")
-                   (button [[type "button"] [class "wa-button"] [data-act "cancel"] [hidden ""]] "Cancel"))
+                        ,(button "seed" "new")))
+              (div [[class "wa-pair"]]
+                   (button [[type "submit"] [class "wa-go"]] "generate")
+                   (button [[type "button"] [data-act "cancel"] [hidden ""]] "cancel")
+                   (button [[type "button"] [data-act "pdf"] [disabled ""]] "pdf"))
               (p [[class "wa-status"] [role "status"] [aria-live "polite"]]
-                 "This page runs a Prolog program and needs JavaScript.")
-              (button [[type "button"] [class "wa-button wa-download"] [data-act "pdf"] [disabled ""]]
-                      "Download PDF"))
+                 "Needs JavaScript (runs a Prolog program)."))
         (section [[class "wa-viewer"] [aria-label "Design"]]
                  (div [[class "wa-toolbar"]]
-                      (div [[class "wa-picknav"]]
-                           (button [[type "button"] [class "wa-button"] [data-act "prev"]
-                                    [aria-label "Previous pick (down)"]] "↓")
-                           (span [[class "wa-pickno"]] "Pick –")
-                           (button [[type "button"] [class "wa-button"] [data-act "next"]
-                                    [aria-label "Next pick (up)"]] "↑"))
+                      ,(button "prev" "↓" "Previous pick (down)")
+                      (span [[class "wa-pickno"]] "–")
+                      ,(button "next" "↑" "Next pick (up)")
                       (input [[type "range"] [class "wa-slider"] [min "1"] [max "1"] [value "1"]
                               [aria-label "Pick to follow"]])
-                      (div [[class "wa-zoom"]]
-                           (button [[type "button"] [class "wa-button"] [data-act "zoom-out"]
-                                    [aria-label "Zoom out"]] "−")
-                           (button [[type "button"] [class "wa-button"] [data-act "zoom-fit"]
-                                    [aria-label "Fit width"]] "Fit")
-                           (button [[type "button"] [class "wa-button"] [data-act "zoom-in"]
-                                    [aria-label "Zoom in"]] "+"))
-                      (label [[class "wa-check"]]
-                             (input [[type "checkbox"] [name "shade"] [checked ""]])
-                             "Shade woven picks"))
+                      ,(button "zoom-out" "−" "Zoom out")
+                      ,(button "zoom-fit" "fit" "Fit width")
+                      ,(button "zoom-in" "+" "Zoom in"))
                  ;; the canvas draws only what's in view; the transparent
                  ;; scroller on top provides scrolling, clicks and keys
                  (div [[class "wa-stage"]]
@@ -82,15 +90,14 @@
                            (div [[class "wa-spacer"]])))
                  (p [[class "wa-hover"] [aria-hidden "true"]] " ")
                  (ul [[class "wa-legend"]]
-                     (li (span [[class "wa-swatch"] [data-v "1"]]) "black, full")
-                     (li (span [[class "wa-swatch"] [data-v "3"]]) "black, half")
-                     (li (span [[class "wa-swatch"] [data-v "2"]]) "white, full")
-                     (li (span [[class "wa-swatch"] [data-v "4"]]) "white, half")
-                     (li (span [[class "wa-swatch"] [data-v "0"]]) "bare warp")))
+                     (li (span [[class "wa-swatch"] [data-v "1"]]) "black full")
+                     (li (span [[class "wa-swatch"] [data-v "3"]]) "black half")
+                     (li (span [[class "wa-swatch"] [data-v "2"]]) "white full")
+                     (li (span [[class "wa-swatch"] [data-v "4"]]) "white half")
+                     (li (span [[class "wa-swatch"] [data-v "0"]]) "bare")))
         (section [[class "wa-pick"] [aria-label "Pick to follow"]]
-                 (h2 [[class "wa-pick-title"]] "Pick")
-                 (p [[class "wa-pick-sub"]] "")
+                 (h2 [[class "wa-pick-title"]] "pick")
                  (ol [[class "wa-steps"]]))
         (details [[class "wa-rules"]]
-                 (summary "Bobbins, rules and the procedure for every pick")
+                 (summary "rules + procedure")
                  (pre [[class "wa-rules-text"]]))))

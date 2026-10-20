@@ -5,7 +5,7 @@
 £title{Woven Automata}
 
 £section-intro{
-A tapestry that weaves itself by rules. Bobbins of black and white yarn each own a stretch of the warp; after every pick their rules grow, shrink, shift, recolour or split them, and a cellular automaton can carve patterns inside. Choose the settings, generate a design, then follow it pick by pick — or download it as a PDF to take to the loom.
+Bobbins of black and white yarn own stretches of the warp; rules move them pick by pick, and a cellular automaton carves the pattern inside. Generate, follow it pick by pick, or take the PDF to the loom.
 }
 
 £woven-automata-app[]

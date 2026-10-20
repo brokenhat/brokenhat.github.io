@@ -17,16 +17,22 @@
 :- use_module(library(random)).
 
 %% wa_generate(+Settings, -Result)
-%  Settings = settings(Mode, Width, Picks, Bobbins, MaxBobbins, Border, Seed)
+%  Settings = settings(Mode, Width, Picks, Bobbins, MaxBobbins, Border, CA, Seed)
 %  Mode     = random | good | crystalline | life | uniform
+%  CA       = auto | none | 0..255 (Wolfram rule for the thread pattern;
+%             auto = the mode's own choice: uniform picks one, others none)
 %  Result   = result(Rows, Lanes, Text, Score)
-wa_generate(settings(Mode, W, Picks, NB, Max, Border, Seed),
+%
+%  Bobbins is used exactly, in every mode (the program's own searches vary
+%  it by ±3, and uniform mode sets it from the warp width).
+wa_generate(settings(Mode, W, Picks, NB, Max, Border, CA, Seed),
             result(Rows, Lanes, Text, Score)) :-
     set_random(seed(Seed)),
     wa_reset,
     wa_set(W, Picks, NB, Max, Border),
     (   Mode == uniform -> enable_uniform_mode ; true ),
-    with_output_to(string(_Progress), wa_config(Mode, Config)),
+    wa_set_ca(Mode, CA),
+    with_output_to(string(_Progress), wa_config(Mode, NB, Config)),
     init_bobbins_from_config(Config, Bobbins),
     wa_weave(Bobbins, Picks, Rows, Lanes),
     wa_score(Mode, Rows, Score),
@@ -38,27 +44,69 @@ wa_set(W, Picks, NB, Max, Border) :-
     set_warp(W),
     retractall(num_picks(_)), assertz(num_picks(Picks)),
     retractall(num_bobbins(_)), assertz(num_bobbins(NB)),
-    retractall(max_bobbins(_)), assertz(max_bobbins(Max)),
+    Cap is max(Max, NB),
+    retractall(max_bobbins(_)), assertz(max_bobbins(Cap)),
     retractall(border_style(_)), assertz(border_style(Border)).
+
+% A chosen rule (or none) is fixed: uniform mode keeps it through its
+% search and mutations, the other modes carry it in every config.
+wa_set_ca(_, auto) :- !.
+wa_set_ca(Mode, CA) :-
+    retractall(ca_rule(_)),
+    (   integer(CA) -> assertz(ca_rule(CA)) ; true ),
+    (   Mode == uniform -> assertz(ca_rule_fixed) ; true ).
 
 wa_reset :- disable_uniform_mode.
 
-%% wa_config(+Mode, -Config) — the program's own generators and searches
-wa_config(random, Config) :-
-    init_bobbins(Bobbins),
+%% wa_config(+Mode, +NB, -Config) — the program's own generators,
+%  evaluations and evolution, searched with exactly NB bobbins
+wa_config(random, NB, Config) :-
+    wa_random_bobbins(NB, Bobbins),
     bobbins_to_config(Bobbins, Config).
-wa_config(good, Config) :-
-    search_random_best(20, -999, nil, Best, _),
+wa_config(good, NB, Config) :-
+    wa_search(20, wa_random_bobbins(NB), evaluate_fabric, Best),
     evolve(Best, 10, 5, Config, _).
-wa_config(crystalline, Config) :-
-    search_crystalline(30, -999, nil, Best, _),
+wa_config(crystalline, NB, Config) :-
+    wa_search(30, init_bobbins_geometric(NB), evaluate_crystalline, Best),
     evolve_crystalline(Best, 10, 5, Config, _).
-wa_config(life, Config) :-
-    search_life(30, -999, nil, Best, _),
+wa_config(life, NB, Config) :-
+    wa_search(30, init_bobbins_life(NB), evaluate_life, Best),
     evolve_life(Best, 10, 5, Config, _).
-wa_config(uniform, Config) :-
-    search_uniform(30, -999, nil, Best, _),
+wa_config(uniform, NB, Config) :-
+    wa_search(30, wa_uniform_bobbins(NB), evaluate_life, Best),
     evolve_uniform(Best, 10, 5, Config, _).
+
+wa_random_bobbins(NB, Bobbins) :-
+    rand_start_style(Style),
+    init_bobbins_style(Style, NB, Bobbins).
+
+wa_uniform_bobbins(NB, Bobbins) :-
+    (   ca_rule_fixed -> init_bobbins_uniform_keep_ca(NB, Bobbins)
+    ;   init_bobbins_uniform(NB, Bobbins)
+    ).
+
+%% wa_search(+Trials, :Init, :Eval, -Best)
+%  Like the program's search_* loops: weave each trial for the
+%  evaluation length, keep the best config.
+wa_search(Trials, Init, Eval, Best) :-
+    wa_search_(Trials, Init, Eval, -999, nil, Best),
+    Best \== nil.
+
+wa_search_(0, _, _, _, Best, Best) :- !.
+wa_search_(N, Init, Eval, BS, BC, Best) :-
+    search_eval_picks(SEP),
+    catch(
+        (   call(Init, Bobbins),
+            bobbins_to_config(Bobbins, Config),
+            empty_row(Row0),
+            weave_rows(SEP, Bobbins, Row0, 1, [], Fabric),
+            call(Eval, Fabric, Score, _)
+        ),
+        _, (Score = -1, Config = nil)
+    ),
+    (   Score > BS -> NS = Score, NC = Config ; NS = BS, NC = BC ),
+    N1 is N - 1,
+    wa_search_(N1, Init, Eval, NS, NC, Best).
 
 %% wa_weave(+Bobbins, +Picks, -Rows, -Lanes)
 %  Same loop as weave_rows/6, also recording who weaves where on each pick.

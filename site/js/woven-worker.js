@@ -45,13 +45,16 @@ onmessage = async (e) => {
     const s = e.data.settings;
     const mode = MODES.includes(s.mode) ? s.mode : 'random';
     const border = s.border === 'interlock' ? 'interlock' : 'slit';
+    const width = int(s.width, 20, 200, 80);
+    const ca = s.ca === 'none' || s.ca === 'auto' ? s.ca : int(s.ca, 0, 255, 'auto');
     const goal = 'wa_generate(settings(' + [
       mode,
-      int(s.width, 20, 200, 80),
+      width,
       int(s.picks, 20, 1000, 500),
-      int(s.bobbins, 3, 20, 8),
-      int(s.max, 3, 40, 20),
+      int(s.bobbins, 2, Math.floor(width / 3), 8),  // a bobbin needs ~3 threads
+      int(s.max, 2, 100, 20),
       border,
+      ca,
       int(s.seed, 1, 999999, 1)
     ].join(', ') + '), result(Rows, Lanes, Text, Score))';
     const started = performance.now();

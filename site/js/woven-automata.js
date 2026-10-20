@@ -14,18 +14,7 @@
     0: [210, 200, 185], 1: [20, 20, 20], 2: [240, 240, 235], 3: [80, 80, 80], 4: [200, 200, 195]
   };
   const VALUE = { 'black full': 1, 'white full': 2, 'black half': 3, 'white half': 4 };
-  const MODE_HINTS = {
-    random: 'Random bobbins and rules. Instant.',
-    good: 'Tries 20 random designs, then evolves the best for 10 generations. A few seconds.',
-    crystalline: 'Geometric templates (diamonds, zigzags, lattices), evolved for regularity. A few seconds.',
-    life: 'Birth and death rules for emergent, Game-of-Life-like growth. A few seconds.',
-    uniform: 'One rule shared by every bobbin, plus a cellular automaton inside the territories. Starting bobbins is set from the warp width. A few seconds.'
-  };
-  const MODE_NAMES = {
-    random: 'Random design', good: 'Search + evolve', crystalline: 'Crystalline (geometric)',
-    life: 'Life (emergent)', uniform: 'Uniform rule + automaton'
-  };
-  const FIELDS = ['mode', 'width', 'picks', 'bobbins', 'max', 'border', 'seed'];
+  const FIELDS = ['mode', 'width', 'picks', 'bobbins', 'max', 'border', 'ca', 'seed'];
 
   document.addEventListener('DOMContentLoaded', () => {
     const root = document.querySelector('.wa');
@@ -42,7 +31,6 @@
     this.spacer = root.querySelector('.wa-spacer');
     this.slider = root.querySelector('.wa-slider');
     this.hover = root.querySelector('.wa-hover');
-    this.shade = root.querySelector('input[name="shade"]');
     this.design = null;
     this.pick = 1;
     this.cell = 0;
@@ -50,16 +38,18 @@
 
     this.readUrl();
     this.bind();
-    this.updateModeHint();
+    this.updateLimits();
     this.startWorker();
   }
 
   /* ── settings ─────────────────────────────────────────────────────── */
 
+  // ca: auto | none | a rule number 0–255 (the select, or "other" + rule no.)
   App.prototype.settings = function () {
     const f = this.form.elements;
     const out = {};
     FIELDS.forEach((k) => { out[k] = f[k].value; });
+    if (out.ca === 'other') out.ca = f.rule.value;
     return out;
   };
 
@@ -67,8 +57,16 @@
     const q = new URLSearchParams(location.search);
     const f = this.form.elements;
     FIELDS.forEach((k) => {
-      if (q.has(k)) f[k].value = q.get(k);
+      if (k !== 'ca' && q.has(k)) f[k].value = q.get(k);
     });
+    const ca = q.get('ca');
+    if (ca === null) return;
+    if ([...f.ca.options].some((o) => o.value === ca && o.value !== 'other')) {
+      f.ca.value = ca;
+    } else if (/^\d+$/.test(ca)) {
+      f.ca.value = 'other';
+      f.rule.value = ca;
+    }
   };
 
   App.prototype.writeUrl = function (s) {
@@ -76,10 +74,14 @@
     history.replaceState(null, '', location.pathname + '?' + q.toString());
   };
 
-  App.prototype.updateModeHint = function () {
-    const mode = this.form.elements.mode.value;
-    this.root.querySelector('[data-mode-hint]').textContent = MODE_HINTS[mode] || '';
-    this.form.elements.bobbins.disabled = mode === 'uniform';
+  // a bobbin needs about 3 threads; the cap can't be below the start count
+  App.prototype.updateLimits = function () {
+    const f = this.form.elements;
+    f.bobbins.max = String(Math.max(2, Math.floor(Number(f.width.value) / 3) || 2));
+    f.max.min = f.bobbins.value || '2';
+    const other = f.ca.value === 'other';
+    this.root.querySelector('[data-rule]').hidden = !other;
+    f.rule.disabled = !other;
   };
 
   /* ── worker ───────────────────────────────────────────────────────── */
@@ -158,8 +160,8 @@
     this.cell = 0;  // fit on first draw
     this.layout();
     this.select(1, { scroll: true });
-    this.setStatus('Done in ' + (msg.ms / 1000).toFixed(1) + ' s · ' + this.design.picks + ' picks × ' +
-      this.design.width + ' threads · score ' + msg.score.toFixed(3));
+    this.setStatus((msg.ms / 1000).toFixed(1) + ' s · ' + this.design.picks + '×' +
+      this.design.width + ' · rule ' + caName(s.ca) + ' · score ' + msg.score.toFixed(3));
   };
 
   App.prototype.fail = function (text) {
@@ -191,7 +193,7 @@
       e.preventDefault();
       this.generate();
     });
-    this.form.elements.mode.addEventListener('change', () => this.updateModeHint());
+    this.form.addEventListener('input', () => this.updateLimits());
 
     this.root.addEventListener('click', (e) => {
       const btn = e.target.closest('[data-act]');
@@ -209,7 +211,6 @@
     });
 
     this.slider.addEventListener('input', () => this.select(Number(this.slider.value), { scroll: true }));
-    this.shade.addEventListener('change', () => this.draw());
 
     this.scroller.addEventListener('scroll', () => this.requestDraw());
     this.scroller.addEventListener('click', (e) => {
@@ -323,7 +324,7 @@
     }
     const ctx = cv.getContext('2d');
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.fillStyle = '#ebe6de';
+    ctx.fillStyle = '#f5f2ed';
     ctx.fillRect(0, 0, w, h);
     if (!d) return;
 
@@ -362,7 +363,7 @@
 
     const selTop = oy + (d.picks - this.pick) * cell;
     // already-woven picks (below the one to follow)
-    if (this.shade.checked && this.pick > 1) {
+    if (this.pick > 1) {
       ctx.fillStyle = 'rgba(245,242,237,0.6)';
       ctx.fillRect(ox, selTop + cell, d.width * cell, (this.pick - 1) * cell);
     }
@@ -375,8 +376,8 @@
     ctx.fillStyle = '#f5f2ed';
     ctx.fillRect(0, 0, w, RULER_TOP);
     ctx.fillRect(0, 0, RULER_LEFT, h);
-    ctx.font = '10px "Helvetica Neue", Arial, sans-serif';
-    ctx.fillStyle = '#888';
+    ctx.font = '10px ui-monospace, Menlo, Consolas, monospace';
+    ctx.fillStyle = '#1a1a1a';
     ctx.textBaseline = 'middle';
     ctx.textAlign = 'center';
     const tStep = cell >= 16 ? 5 : 10;
@@ -400,7 +401,7 @@
       ctx.fillStyle = '#c04000';
       ctx.fillRect(0, midY - 8, RULER_LEFT - 3, 16);
       ctx.fillStyle = '#fff';
-      ctx.font = 'bold 10px "Helvetica Neue", Arial, sans-serif';
+      ctx.font = 'bold 10px ui-monospace, Menlo, Consolas, monospace';
       ctx.fillText(String(this.pick), RULER_LEFT - 8, midY);
     }
   };
@@ -450,14 +451,18 @@
     return out;
   };
 
+  function caName(ca) {
+    return ca === 'auto' ? 'auto' : ca === 'none' ? 'none' : ca;
+  }
+
   function yarnName(v) {
-    return ({ 1: 'black, full', 2: 'white, full', 3: 'black, half', 4: 'white, half' })[v] || 'bare';
+    return ({ 1: 'black full', 2: 'white full', 3: 'black half', 4: 'white half' })[v] || 'bare';
   }
 
   function segLabel(seg) {
     if (!seg) return '';
     if (!seg.v) return 'bare';
-    return (seg.owner ? 'bobbin #' + seg.owner.id + ', ' : '') + yarnName(seg.v);
+    return (seg.owner ? '#' + seg.owner.id + ' ' : '') + yarnName(seg.v);
   }
 
   function rangeText(seg, dash) {
@@ -469,7 +474,7 @@
     if (!d) return;
     this.pick = Math.max(1, Math.min(d.picks, pick));
     this.slider.value = String(this.pick);
-    this.root.querySelector('.wa-pickno').textContent = 'Pick ' + this.pick + ' / ' + d.picks;
+    this.root.querySelector('.wa-pickno').textContent = this.pick + '/' + d.picks;
     if (opts && opts.scroll) this.scrollToPick(this.pick, false);
     this.renderPick();
     this.draw();
@@ -479,9 +484,8 @@
     const d = this.design;
     const segs = this.segments(this.pick);
     const bobbins = new Set(segs.filter((s) => s.owner).map((s) => s.owner.id));
-    this.root.querySelector('.wa-pick-title').textContent = 'Pick ' + this.pick + ' of ' + d.picks;
-    this.root.querySelector('.wa-pick-sub').textContent =
-      'Left to right · ' + bobbins.size + ' bobbin' + (bobbins.size === 1 ? '' : 's') + ' on this pick';
+    this.root.querySelector('.wa-pick-title').textContent =
+      'pick ' + this.pick + ' · ' + bobbins.size + ' bobbin' + (bobbins.size === 1 ? '' : 's') + ' · left → right';
     const list = this.root.querySelector('.wa-steps');
     list.innerHTML = '';
     segs.forEach((seg) => {
@@ -493,10 +497,10 @@
       const range = document.createElement('span');
       range.className = 'wa-step-range';
       const n = seg.to - seg.from + 1;
-      range.textContent = (n === 1 ? 'Thread ' : 'Threads ') + rangeText(seg, '–');
+      range.textContent = rangeText(seg, '–');
       const what = document.createElement('span');
       what.className = 'wa-step-what';
-      what.textContent = segLabel(seg) + (n > 1 ? ' (' + n + ')' : '');
+      what.textContent = segLabel(seg) + (n > 1 ? ' ×' + n : '');
       li.append(sw, range, what);
       list.appendChild(li);
     });
@@ -518,7 +522,7 @@
     if (!this.design) return;
     btn.disabled = true;
     const label = btn.textContent;
-    btn.textContent = 'Preparing PDF…';
+    btn.textContent = '…';
     try {
       if (!window.jspdf) await loadScript(JSPDF_URL);
       const doc = this.buildPdf(new window.jspdf.jsPDF({ unit: 'mm', format: 'a4', compress: true }));
@@ -583,9 +587,9 @@
     lines('Woven Automata', 14, 'helvetica');
     y += 2;
     lines([
-      'Kind: ' + MODE_NAMES[s.mode],
+      'Kind: ' + s.mode + '   CA rule: ' + caName(s.ca),
       'Warp: ' + d.width + ' threads   Picks: ' + d.picks + '   Borders: ' + s.border,
-      'Starting bobbins: ' + (s.mode === 'uniform' ? 'from warp width' : s.bobbins) + '   Most bobbins: ' + s.max,
+      'Starting bobbins: ' + s.bobbins + '   Most bobbins: ' + Math.max(Number(s.max), Number(s.bobbins)),
       'Seed: ' + s.seed + '   Score: ' + d.score.toFixed(3),
       'Link: ' + location.href,
       'Pick 1 is the bottom row. Yarn: black / white, full or half pass; bare = warp left showing.'
@@ -608,7 +612,7 @@
     let text = '';
     for (let p = 1; p <= d.picks; p++) {
       text += 'Pick ' + p + ': ' + this.segments(p).map((seg) =>
-        rangeText(seg, '-') + ' ' + (seg.v ? (seg.owner ? '#' + seg.owner.id + ' ' : '') + yarnName(seg.v).replace(', ', ' ') : 'bare')
+        rangeText(seg, '-') + ' ' + (seg.v ? (seg.owner ? '#' + seg.owner.id + ' ' : '') + yarnName(seg.v) : 'bare')
       ).join(' | ') + '\n';
     }
     lines(text.trimEnd(), 8);

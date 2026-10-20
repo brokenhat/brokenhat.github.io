@@ -1,19 +1,23 @@
 /* ─── Woven Automata page ──────────────────────────────────────────
    Loaded by template.html.p for layout "automata".
-   Wide: settings | cloth | pick to follow.  Medium: settings | cloth,
-   pick below.  Phones: one column.                                    */
+   Brutalist: monospace, black 1px rules, no fills, no radii, no motion.
+   Wide: settings | cloth | pick.  Medium: settings | cloth, pick below.
+   Phones: one column.                                                  */
 
 .wa {
-  --wa-line: rgba(26, 26, 26, 0.12);
-  --wa-panel: rgba(255, 255, 255, 0.45);
+  --wa-ink: var(--text);
+  --wa-rule: 1px solid var(--wa-ink);
   display: grid;
-  grid-template-columns: minmax(230px, 270px) minmax(0, 1fr) minmax(260px, 320px);
+  grid-template-columns: 17rem minmax(0, 1fr) 17rem;
   grid-template-areas:
     "controls viewer pick"
-    "controls rules  rules";
-  gap: 1.5rem 2rem;
+    "rules    rules  rules";
+  gap: 1.5rem;
   align-items: start;
-  margin-top: 1rem;
+  margin-top: 1.5rem;
+  font-family: ui-monospace, Menlo, Consolas, "Liberation Mono", monospace;
+  font-size: 0.8125rem;
+  line-height: 1.4;
 }
 
 .wa-controls { grid-area: controls; }
@@ -21,181 +25,180 @@
 .wa-pick     { grid-area: pick; }
 .wa-rules    { grid-area: rules; }
 
-/* ─── settings ─────────────────────────────────────────────────── */
-.wa-controls {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
+.wa [hidden] { display: none !important; }
 
-.wa-field {
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
-}
-
-.wa-label {
-  font-size: 0.7rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--muted);
-}
-
-.wa-hint {
-  font-size: 0.75rem;
-  line-height: 1.4;
-  color: var(--muted);
-}
-
-.wa-hint:empty {
-  display: none;
-}
-
-.wa input[type="number"],
-.wa select {
-  width: 100%;
-  min-height: 2.5rem;
-  padding: 0.4rem 0.6rem;
-  border: 1px solid var(--wa-line);
-  border-radius: 3px;
-  background: #fff;
-  color: var(--text);
-  font: inherit;
-  font-size: 0.9rem;
-}
-
-.wa input:disabled,
-.wa select:disabled {
-  opacity: 0.5;
-}
-
-.wa-seed {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.wa-seed input {
-  flex: 1;
+/* ─── controls: shared look ────────────────────────────────────── */
+.wa input,
+.wa select,
+.wa button {
+  min-height: 2.25rem;
   min-width: 0;
+  padding: 0 0.5rem;
+  border: var(--wa-rule);
+  border-radius: 0;
+  background: transparent;
+  color: var(--wa-ink);
+  font: inherit;
 }
 
-.wa-button {
-  min-height: 2.5rem;
-  padding: 0 0.9rem;
-  border: 1px solid var(--wa-line);
-  border-radius: 3px;
-  background: var(--wa-panel);
-  color: var(--text);
-  font: inherit;
-  font-size: 0.8rem;
-  letter-spacing: 0.04em;
+.wa select {
+  appearance: none;
+  /* a plain ▾, no native chrome */
+  background: linear-gradient(45deg, transparent 50%, var(--wa-ink) 50%) right 0.85rem center / 5px 5px no-repeat,
+              linear-gradient(-45deg, transparent 50%, var(--wa-ink) 50%) right 0.55rem center / 5px 5px no-repeat;
+  padding-right: 1.5rem;
+}
+
+.wa button {
   cursor: pointer;
   white-space: nowrap;
-  transition: border-color 0.15s, color 0.15s, background 0.15s;
 }
 
-.wa-button:hover:not(:disabled) {
-  border-color: var(--accent);
-  color: var(--accent);
+.wa button:hover:not(:disabled),
+.wa button:focus-visible {
+  background: var(--wa-ink);
+  color: var(--bg);
 }
 
-.wa-button:disabled {
-  opacity: 0.45;
+.wa button:disabled {
+  border-style: dashed;
+  opacity: 0.4;
   cursor: default;
 }
 
-.wa-button--primary {
-  background: var(--text);
-  border-color: var(--text);
-  color: #fff;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
+.wa :focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
 }
 
-.wa-button--primary:hover:not(:disabled) {
-  background: var(--accent);
+.wa input:invalid {
   border-color: var(--accent);
-  color: #fff;
 }
 
-.wa-actions {
+/* ─── settings: label | value rows ─────────────────────────────── */
+.wa-controls {
+  display: grid;
+  border-top: var(--wa-rule);
+}
+
+.wa-row {
+  display: grid;
+  grid-template-columns: 5.5rem minmax(0, 1fr);
+  align-items: center;
+  border-bottom: var(--wa-rule);
+}
+
+.wa-row > span,
+.wa-row > label {
+  padding: 0 0.5rem 0 0;
+}
+
+.wa-row input,
+.wa-row select,
+.wa-row .wa-pair {
+  width: 100%;
+  border-width: 0 0 0 1px;
+}
+
+.wa-pair {
   display: flex;
-  gap: 0.5rem;
 }
 
-.wa-actions .wa-button--primary {
+.wa-pair > * {
   flex: 1;
 }
 
+.wa-pair > * + * {
+  border-left-width: 0;
+}
+
+.wa-row .wa-pair > input {
+  flex: 2;
+  border: 0;
+}
+
+.wa-row .wa-pair > button {
+  border-width: 0 0 0 1px;
+}
+
+/* generate / cancel / pdf */
+.wa-controls > .wa-pair {
+  margin-top: 0.75rem;
+}
+
+.wa .wa-go {
+  flex: 2;
+  background: var(--wa-ink);
+  color: var(--bg);
+}
+
+.wa .wa-go:hover:not(:disabled) {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
 .wa-status {
-  min-height: 2.6em;
-  font-size: 0.8rem;
-  line-height: 1.4;
-  color: var(--muted);
+  min-height: 2.8em;
+  margin-top: 0.5rem;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
 }
 
 .wa.is-busy .wa-status {
   color: var(--accent);
 }
 
-.wa :focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-
 /* ─── cloth view ───────────────────────────────────────────────── */
 .wa-toolbar {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.6rem 1rem;
-  margin-bottom: 0.75rem;
+  align-items: stretch;
+  border: var(--wa-rule);
+  border-bottom: 0;
 }
 
-.wa-picknav,
-.wa-zoom {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
+.wa .wa-toolbar > * {
+  border-width: 0 1px 0 0;
+}
+
+.wa .wa-toolbar > :last-child {
+  border-right: 0;
+}
+
+/* range inputs don't draw borders everywhere: the dividers around the
+   slider belong to its neighbours */
+.wa .wa-toolbar > .wa-slider {
+  border: 0;
+}
+
+.wa .wa-toolbar > .wa-slider + * {
+  border-left-width: 1px;
+}
+
+.wa-toolbar button {
+  min-width: 2.5rem;
 }
 
 .wa-pickno {
-  min-width: 7.5em;
-  text-align: center;
-  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 8ch;
+  padding: 0 0.5rem;
+  border-right: var(--wa-rule);
   font-variant-numeric: tabular-nums;
 }
 
-.wa-picknav .wa-button,
-.wa-zoom .wa-button {
-  min-width: 2.5rem;
-  padding: 0 0.6rem;
-}
-
-.wa-slider {
-  flex: 1 1 140px;
-  min-width: 120px;
-  accent-color: var(--accent);
-}
-
-.wa-check {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-size: 0.8rem;
-  color: var(--muted);
-  cursor: pointer;
-}
-
-.wa-check input {
-  accent-color: var(--accent);
+.wa .wa-slider {
+  flex: 1;
+  min-width: 6rem;
+  padding: 0 0.75rem;
+  accent-color: var(--wa-ink);
 }
 
 .wa-stage {
   position: relative;
-  height: clamp(320px, 68vh, 900px);
-  border: 1px solid var(--wa-line);
-  background: #ebe6de;
+  height: clamp(320px, 70vh, 900px);
+  border: var(--wa-rule);
 }
 
 .wa-canvas {
@@ -215,7 +218,6 @@
 }
 
 .wa-scroller:focus-visible {
-  outline: 2px solid var(--accent);
   outline-offset: -2px;
 }
 
@@ -227,19 +229,15 @@
 .wa-hover {
   min-height: 1.4em;
   margin: 0.4rem 0 0;
-  font-size: 0.75rem;
-  color: var(--muted);
   font-variant-numeric: tabular-nums;
 }
 
 .wa-legend {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.4rem 1.2rem;
-  margin-top: 0.4rem;
+  gap: 0.25rem 1rem;
+  margin-top: 0.25rem;
   list-style: none;
-  font-size: 0.75rem;
-  color: var(--muted);
 }
 
 .wa-legend li {
@@ -251,9 +249,9 @@
 .wa-swatch {
   display: inline-block;
   flex-shrink: 0;
-  width: 0.9rem;
-  height: 0.9rem;
-  border: 1px solid rgba(0, 0, 0, 0.25);
+  width: 0.8rem;
+  height: 0.8rem;
+  border: var(--wa-rule);
 }
 
 /* same colours as the cloth (and the program's .ppm export) */
@@ -269,36 +267,31 @@
   top: 1rem;
   max-height: calc(100vh - 2rem);
   overflow-y: auto;
-  padding: 1rem 1.1rem;
-  border: 1px solid var(--wa-line);
-  border-left: 3px solid var(--accent);
-  background: var(--wa-panel);
+  border-top: 3px solid var(--accent);
 }
 
 main .wa-pick-title {
   margin: 0;
-  font-size: 1rem;
-}
-
-.wa-pick-sub {
-  margin: 0.2rem 0 0.8rem;
-  font-size: 0.75rem;
-  color: var(--muted);
+  padding: 0.5rem 0;
+  border-bottom: var(--wa-rule);
+  font: inherit;
+  font-weight: bold;
+  letter-spacing: 0;
+  text-transform: none;
 }
 
 .wa-steps {
   list-style: none;
-  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
 }
 
 .wa-step {
   display: grid;
-  grid-template-columns: 1rem 7.5em 1fr;
+  grid-template-columns: 0.8rem 7ch 1fr;
   align-items: center;
   gap: 0.6rem;
-  padding: 0.35rem 0;
-  border-top: 1px solid var(--wa-line);
-  font-variant-numeric: tabular-nums;
+  padding: 0.3rem 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--wa-ink) 20%, transparent);
 }
 
 .wa-step--bare {
@@ -307,31 +300,22 @@ main .wa-pick-title {
 
 /* ─── the program's instructions ───────────────────────────────── */
 .wa-rules {
-  border-top: 1px solid var(--wa-line);
-  padding-top: 0.75rem;
+  border-top: var(--wa-rule);
+  padding-top: 0.5rem;
 }
 
 .wa-rules summary {
   cursor: pointer;
-  font-size: 0.8rem;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--muted);
-}
-
-.wa-rules summary:hover {
-  color: var(--accent);
 }
 
 .wa-rules-text {
-  margin-top: 0.75rem;
+  margin-top: 0.5rem;
   max-height: 60vh;
   overflow: auto;
-  padding: 1rem;
-  background: var(--wa-panel);
-  border: 1px solid var(--wa-line);
+  padding: 0.75rem;
+  border: var(--wa-rule);
+  font: inherit;
   font-size: 0.75rem;
-  line-height: 1.5;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
@@ -339,16 +323,25 @@ main .wa-pick-title {
 /* ─── medium: pick panel moves under the cloth ─────────────────── */
 @media (max-width: 1180px) {
   .wa {
-    grid-template-columns: minmax(220px, 260px) minmax(0, 1fr);
+    grid-template-columns: 16rem minmax(0, 1fr);
     grid-template-areas:
       "controls viewer"
-      "controls pick"
+      "pick     pick"
       "rules    rules";
   }
 
   .wa-pick {
     position: static;
     max-height: none;
+  }
+
+  .wa-steps {
+    columns: 2 18rem;
+    column-gap: 1.5rem;
+  }
+
+  .wa-step {
+    break-inside: avoid;
   }
 }
 
@@ -359,18 +352,10 @@ main .wa-pick-title {
     grid-template-areas: "controls" "viewer" "pick" "rules";
   }
 
-  .wa-controls {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.9rem;
-  }
-
-  .wa-controls > :first-child,
-  .wa-controls > .wa-field:has(.wa-seed),
-  .wa-actions,
-  .wa-status,
-  .wa-download {
-    grid-column: 1 / -1;
+  .wa input,
+  .wa select,
+  .wa button {
+    min-height: 2.75rem;
   }
 
   .wa-stage {
@@ -378,14 +363,29 @@ main .wa-pick-title {
     height: 60dvh;
   }
 
-  .wa-slider {
-    flex-basis: 100%;
-    order: 5;
+  .wa-toolbar {
+    flex-wrap: wrap;
   }
 
-  .wa-picknav .wa-button,
-  .wa-zoom .wa-button {
-    min-width: 2.75rem;
+  .wa-toolbar > * {
+    flex: 1;
+  }
+
+  .wa .wa-toolbar > * {
+    border-bottom-width: 1px;
+  }
+
+  .wa-pickno {
+    border-bottom: var(--wa-rule);
+  }
+
+  .wa .wa-toolbar > .wa-slider + * {
+    border-left-width: 0;
+  }
+
+  .wa .wa-slider {
+    order: 5;
+    flex-basis: 100%;
     min-height: 2.75rem;
   }
 }
