@@ -176,6 +176,34 @@ Second paragraph with a £link["/cv.html"]{link}.
 
 Empty squares next to your tiles are drawn automatically. To move a tile, change its numbers; to remove it, delete its line.
 
+#### Arrows and paths
+
+An arrow sits on an empty square and points the way to another tile, as in blog-tile. Put arrows inside `£tile-grid{ }` with the tiles:
+
+```
+£arrow[#:x 1 #:y 0 #:dir "right"]      ← leads to the next tile to its right
+£arrow[#:x 1 #:y -2 #:to "-1 0"]       ← leads to the tile at -1, 0 (anywhere)
+£arrow[#:x -1 #:y 1 #:dir "up" #:to "0 1"]
+```
+
+- `#:dir` is `up`, `down`, `left` or `right`. Without `#:to`, the arrow leads to the first tile that way (straight in line if there is one, otherwise the nearest one ahead).
+- `#:to "x y"` picks the tile it leads to. With `#:to` you can leave out `#:dir`: it then points along the longer distance.
+- Clicking an arrow glides the grid to its tile.
+
+**Paths.** A tile directly behind an arrow's tail is linked to the arrow's tile: tile → arrow → tile. Chain them to make a route through the grid:
+
+```
+[A] ▶ [B]        £arrow[#:x 1 #:y 0 #:dir "right"]   A → B
+       ▼         £arrow[#:x 1 #:y -1 #:dir "down"]   B → C
+      [C]
+```
+
+Along a path:
+- With a tile selected, the arrow key in the arrow's direction follows it.
+- Every viewer (text, image, lightbox, sketchbook) shows **← previous · next →** buttons at the top, so visitors can go through the route without closing anything. The ← → keys do the same, except in a sketchbook, where they turn pages.
+
+`example/tiles.html.pm` has a route through all five of its tiles. An arrow with nothing to lead to is drawn faded.
+
 #### Optional settings
 
 | Setting | What it does | Example |
@@ -214,7 +242,7 @@ Copies are remade when the original changes. Image paths must start with `/` (e.
 
 | File | Role |
 |------|------|
-| `lib/tiles.rkt` | The `£tile-grid`, `£tile`, `£sketch-page` tags |
+| `lib/tiles.rkt` | The `£tile-grid`, `£tile`, `£sketch-page`, `£arrow` tags |
 | `lib/thumbs.rkt` | Makes the resized image copies |
 | `template.html.p` | With `layout "tiles"`: full-height grid, loads the tile CSS/JS |
 | `css/tiles.css` | Look of tiles and viewers |

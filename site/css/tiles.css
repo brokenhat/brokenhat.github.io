@@ -162,6 +162,36 @@ body.page--tiles footer {
   pointer-events: none;
 }
 
+/* arrows on empty squares (£arrow), as in blog-tile */
+.grid-cell--arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.grid-cell__arrow {
+  width: 50%;
+  height: 50%;
+  fill: rgba(33, 29, 23, 0.55);
+  pointer-events: none;
+  transition: fill 0.2s ease;
+}
+
+.grid-cell--arrow:hover .grid-cell__arrow {
+  fill: rgba(33, 29, 23, 0.85);
+}
+
+/* an arrow with nowhere to go */
+.grid-cell--arrow-dead {
+  cursor: inherit;
+  pointer-events: none;
+}
+
+.grid-cell--arrow-dead .grid-cell__arrow {
+  fill: rgba(33, 29, 23, 0.2);
+}
+
 .grid-cell__image {
   width: 100%;
   height: 100%;
@@ -703,6 +733,47 @@ body.page--tiles footer {
   }
 }
 
+/* ─── path along the arrows (any viewer) ───────────────────────── */
+.tile-path {
+  position: fixed;
+  top: max(0.75rem, env(safe-area-inset-top, 0px));
+  left: 50%;
+  z-index: 20;
+  display: flex;
+  gap: 2px;
+  max-width: calc(100vw - 7rem);
+  transform: translateX(-50%);
+}
+
+.tile-path button {
+  min-width: 0;
+  min-height: 2.25rem;
+  padding: 0 0.9rem;
+  border: 0;
+  background: rgba(20, 18, 14, 0.78);
+  color: #fff;
+  font: inherit;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+
+.tile-path button:hover {
+  background: rgba(20, 18, 14, 0.95);
+}
+
+.tile-path button[hidden] {
+  display: none;
+}
+
+@media (pointer: coarse) {
+  .tile-path button {
+    min-height: 2.75rem;
+  }
+}
+
 /* ─── lightbox ─────────────────────────────────────────────────── */
 .lightbox-dialog {
   position: fixed;
@@ -862,7 +933,8 @@ body.page--tiles footer {
 .tile-dialog button:focus-visible,
 .image-preview-dialog button:focus-visible,
 .lightbox-dialog button:focus-visible,
-.book-dialog button:focus-visible {
+.book-dialog button:focus-visible,
+.tile-path button:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
@@ -905,6 +977,7 @@ body.page--tiles footer {
 @media (prefers-reduced-motion: reduce) {
   .grid-cell,
   .grid-cell__overlay,
+  .grid-cell__arrow,
   .lightbox-window {
     transition: none;
   }

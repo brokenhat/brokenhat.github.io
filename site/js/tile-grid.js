@@ -1,7 +1,9 @@
 /* ─── Tile Grid ────────────────────────────────────────────────────────── */
 /* Pan/zoom grid for tile subpages, ported from blog-tile's grid-public.js.
    Tiles are rendered by lib/tiles.rkt; this script positions them, adds the
-   empty neighbour cells, and handles pan, zoom and the tile viewers.       */
+   empty neighbour cells, and handles pan, zoom and the tile viewers.
+   Arrows (£arrow) lead to a tile; tile → arrow → tile chains make a path
+   that arrow keys and the viewers' ← → buttons follow.                    */
 (function () {
   'use strict';
 
@@ -22,6 +24,10 @@
   function clamp(v, min, max) { return Math.min(max, Math.max(min, v)); }
   function key(x, y) { return x + ',' + y; }
 
+  const DIRS = { up: [0, 1], down: [0, -1], left: [-1, 0], right: [1, 0] };
+  // tile element → { grid, prev, next } (nodes along the arrows' path)
+  const paths = new WeakMap();
+
   /* ── grid ──────────────────────────────────────────────────────────── */
 
   function TileGrid(root) {
@@ -39,14 +45,22 @@
     this.viewMoved = false; // set once the visitor pans or zooms
 
     this.nodes = [];
+    this.arrows = [];
     this.byKey = new Map();
     this.plane.querySelectorAll('.grid-cell').forEach((el) => {
       const node = { el, x: parseInt(el.dataset.x, 10), y: parseInt(el.dataset.y, 10) };
-      this.nodes.push(node);
+      if (el.classList.contains('grid-cell--arrow')) {
+        node.arrow = true;
+        node.dir = el.dataset.dir;
+        this.arrows.push(node);
+      } else {
+        this.nodes.push(node);
+      }
       this.byKey.set(key(node.x, node.y), node);
     });
     if (!this.nodes.length) return;
 
+    this.linkArrows();
     this.addEmptyNeighbours();
     this.computeExtents();
     this.bind();
@@ -73,9 +87,59 @@
     });
   };
 
+  // Each arrow's target: the tile at data-to, else the first tile in its
+  // direction (in line first, then the nearest ahead). The tile behind an
+  // arrow's tail steps to that target: that's the path.
+  TileGrid.prototype.linkArrows = function () {
+    this.arrows.forEach((a) => {
+      const [dx, dy] = DIRS[a.dir] || [0, 0];
+      if (a.el.dataset.to) {
+        const t = this.byKey.get(a.el.dataset.to);
+        a.target = t && !t.arrow ? t : null;
+        if (!a.target) console.warn('tile-grid: no tile at ' + a.el.dataset.to + ' for the arrow at ' + key(a.x, a.y));
+      } else {
+        a.target = this.ahead(a, dx, dy);
+      }
+      if (!a.target) {
+        a.el.classList.add('grid-cell--arrow-dead');
+        return;
+      }
+      a.el.setAttribute('aria-label', 'Go to ' + (a.target.el.dataset.title || 'tile ' + key(a.target.x, a.target.y)));
+      const from = this.byKey.get(key(a.x - dx, a.y - dy));
+      if (from && !from.arrow && from !== a.target) {
+        const p = this.pathOf(from);
+        if (!p.next) p.next = a.target;
+        const q = this.pathOf(a.target);
+        if (!q.prev) q.prev = from;
+      }
+    });
+  };
+
+  TileGrid.prototype.pathOf = function (node) {
+    let p = paths.get(node.el);
+    if (!p) paths.set(node.el, p = { grid: this, node, prev: null, next: null });
+    return p;
+  };
+
+  // The tile a step from `from` in a direction lands on: in line if there
+  // is one, otherwise the nearest ahead, preferring small sideways offsets.
+  TileGrid.prototype.ahead = function (from, dx, dy) {
+    let best = null;
+    let bestScore = Infinity;
+    this.nodes.forEach((n) => {
+      const ax = (n.x - from.x) * dx + (n.y - from.y) * dy; // along direction
+      if (ax <= 0) return;
+      const off = Math.abs((n.x - from.x) * dy) + Math.abs((n.y - from.y) * dx);
+      const score = ax + off * 2;
+      if (score < bestScore) { bestScore = score; best = n; }
+    });
+    return best;
+  };
+
   TileGrid.prototype.computeExtents = function () {
-    const xs = this.nodes.map((n) => n.x);
-    const ys = this.nodes.map((n) => n.y);
+    const all = this.nodes.concat(this.arrows);
+    const xs = all.map((n) => n.x);
+    const ys = all.map((n) => n.y);
     this.extents = {
       minX: Math.min(...xs), maxX: Math.max(...xs),
       minY: Math.min(...ys), maxY: Math.max(...ys)
@@ -246,7 +310,12 @@
       const el = e.target.closest('.grid-cell');
       if (!el || el.classList.contains('grid-cell--empty')) return;
       if (this.suppressClick) { this.suppressClick = false; return; }
-      this.select(this.byKey.get(key(el.dataset.x, el.dataset.y)));
+      const node = this.byKey.get(key(el.dataset.x, el.dataset.y));
+      if (node.arrow) {
+        if (node.target) this.goTo(node.target);
+        return;
+      }
+      this.select(node);
       openTile(el);
     });
 
@@ -390,28 +459,28 @@
   };
 
   // Move the selection to the nearest tile in a direction (or the one
-  // nearest the view centre when nothing is selected yet).
+  // nearest the view centre when nothing is selected yet). An arrow right
+  // beside the tile, pointing that way, is followed to its target.
   TileGrid.prototype.step = function (dx, dy) {
-    const from = this.current || this.nearestToCenter();
-    let best = null;
-    let bestScore = Infinity;
-    if (this.current) {
-      this.nodes.forEach((n) => {
-        const ax = (n.x - from.x) * dx + (n.y - from.y) * dy; // along direction
-        if (ax <= 0) return;
-        const off = Math.abs((n.x - from.x) * dy) + Math.abs((n.y - from.y) * dx);
-        const score = ax + off * 2;
-        if (score < bestScore) { bestScore = score; best = n; }
-      });
-    } else {
-      best = from;
+    if (!this.current) {
+      this.goTo(this.nearestToCenter());
+      return;
     }
-    if (best) {
-      this.viewMoved = true;
-      this.select(best);
-      this.centerOn(best);
-      best.el.focus({ preventScroll: true });
+    const beside = this.byKey.get(key(this.current.x + dx, this.current.y + dy));
+    const dir = DIRS[beside && beside.dir];
+    if (beside && beside.arrow && beside.target && dir[0] === dx && dir[1] === dy) {
+      this.goTo(beside.target);
+      return;
     }
+    const best = this.ahead(this.current, dx, dy);
+    if (best) this.goTo(best);
+  };
+
+  TileGrid.prototype.goTo = function (node) {
+    this.viewMoved = true;
+    this.select(node);
+    this.centerOn(node);
+    node.el.focus({ preventScroll: true });
   };
 
   TileGrid.prototype.nearestToCenter = function () {
@@ -443,17 +512,57 @@
 
   function openTile(el) {
     const type = el.dataset.type;
+    let dialog;
     if (type === 'image') {
       const img = el.querySelector('.grid-cell__image');
       if (!img) return;
       // as in blog-tile: tiles with text get the side-by-side preview,
       // plain image tiles go straight to the lightbox
-      if (el.querySelector('.grid-cell__description')) openImagePreview(el, img);
-      else openLightbox(viewSrc(img), el.dataset.title || '', null, img.dataset.full);
+      if (el.querySelector('.grid-cell__description')) dialog = openImagePreview(el, img);
+      else dialog = openLightbox(viewSrc(img), el.dataset.title || '', null, img.dataset.full);
     } else if (type === 'sketchbook') {
-      openBook(el);
+      dialog = openBook(el);
     } else {
-      openText(el);
+      dialog = openText(el);
+    }
+    if (dialog) addPathNav(dialog, el);
+  }
+
+  /* ── following the arrows inside a viewer ──────────────────────────── */
+
+  // ← previous · next → along the arrows, at the top of any viewer. Arrow
+  // keys do the same, except in a sketchbook (they turn its pages).
+  function addPathNav(dialog, el) {
+    const p = paths.get(el);
+    if (!p || (!p.prev && !p.next)) return;
+    const nav = document.createElement('nav');
+    nav.className = 'tile-path';
+    nav.setAttribute('aria-label', 'Path through the tiles');
+    const button = (node, rel) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'tile-path__' + rel;
+      const name = node ? node.el.dataset.title || 'tile ' + key(node.x, node.y) : '';
+      b.textContent = rel === 'prev' ? '← ' + name : name + ' →';
+      b.setAttribute('aria-label', (rel === 'prev' ? 'Previous: ' : 'Next: ') + name);
+      b.hidden = !node;
+      b.addEventListener('click', () => travel(node));
+      return b;
+    };
+    const travel = (node) => {
+      if (!node) return;
+      dialog.leaving = true;  // a lightbox must not reopen what it came from
+      dialog.close();
+      p.grid.goTo(node);
+      openTile(node.el);
+    };
+    nav.append(button(p.prev, 'prev'), button(p.next, 'next'));
+    dialog.appendChild(nav);
+    if (el.dataset.type !== 'sketchbook') {
+      dialog.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight') travel(p.next);
+        else if (e.key === 'ArrowLeft') travel(p.prev);
+      });
     }
   }
 
@@ -489,11 +598,12 @@
     // the image (or ⤢) opens the lightbox; closing it comes back here
     const toLightbox = () => {
       dialog.close();
-      openLightbox(viewSrc(img), el.dataset.title || '', () => openImagePreview(el, img), img.dataset.full);
+      addPathNav(openLightbox(viewSrc(img), el.dataset.title || '', () => openTile(el), img.dataset.full), el);
     };
     big.addEventListener('click', toLightbox);
     dialog.querySelector('.image-preview-expand').addEventListener('click', toLightbox);
     show(dialog, dialog.querySelector('.image-preview-window'));
+    return dialog;
   }
 
   /* ── lightbox (blog-tile #mobile-image-dialog) ─────────────────────── */
@@ -696,9 +806,10 @@
       stopMomentum();
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('mouseup', onMouseUp);
-      if (onClose) onClose();
+      if (onClose && !dialog.leaving) onClose();
     });
     show(dialog, win);
+    return dialog;
   }
 
   // Open modally with focus on the dialog's window rather than its first
@@ -733,6 +844,7 @@
     dialog.querySelector('.tile-dialog__body').innerHTML = body ? body.innerHTML : '';
     dialog.querySelector('.tile-dialog__close').addEventListener('click', () => dialog.close());
     show(dialog, dialog.querySelector('.tile-dialog__window'));
+    return dialog;
   }
 
   // Cover alone on the right, then pages in pairs — as in blog-tile.
@@ -830,5 +942,6 @@
 
     render();
     show(dialog, dialog.querySelector('.book-viewer'));
+    return dialog;
   }
 })();

@@ -10,7 +10,7 @@
 ;; Tiles are rendered to HTML here; js/tile-grid.js only positions them
 ;; and handles pan, zoom, and the tile viewers.
 
-(provide tile-grid tile sketch-page)
+(provide tile-grid tile sketch-page arrow)
 
 ;; ─── tile-grid ───────────────────────────────────────────────────────
 ;; Container for tiles. Empty neighbour cells are added client-side.
@@ -116,6 +116,46 @@
 ;; One page of a sketchbook tile. Not loaded until the book is opened.
 (define (sketch-page src #:alt [alt ""])
   `(span [[data-sketch-src ,(resized src 1600)] [data-full ,src] [data-alt ,alt]]))
+
+;; ─── arrow ───────────────────────────────────────────────────────────
+;; An arrow on an empty square, pointing the way to another tile, as in
+;; blog-tile. It leads to the first tile in its direction, or to the tile
+;; at #:to "x y" anywhere on the grid (then #:dir can be left out: it
+;; points along the longer leg). Clicking it goes there; a tile beside
+;; it, behind its tail, gets a "next" step along the path (see
+;; js/tile-grid.js).
+(define arrow-paths
+  (hash "up" "M12 4 L22 20 H2 Z"
+        "down" "M12 20 L2 4 H22 Z"
+        "left" "M4 12 L20 2 V22 Z"
+        "right" "M20 12 L4 2 V22 Z"))
+
+(define (arrow #:x x #:y y #:dir [dir #f] #:to [to #f])
+  (define target
+    (and to
+         (let ([m (regexp-match #px"^\\s*(-?\\d+)[\\s,]+(-?\\d+)\\s*$" (~a to))])
+           (unless m
+             (error 'arrow "#:to should be two numbers like \"3 -1\", got ~s" to))
+           (map string->number (cdr m)))))
+  (define direction
+    (cond [dir (string-downcase (~a dir))]
+          [target
+           (define dx (- (car target) x))
+           (define dy (- (cadr target) y))
+           (cond [(and (zero? dx) (zero? dy))
+                  (error 'arrow "arrow at ~a, ~a points at its own square" x y)]
+                 [(>= (abs dx) (abs dy)) (if (positive? dx) "right" "left")]
+                 [else (if (positive? dy) "up" "down")])]
+          [else (error 'arrow "arrow at ~a, ~a needs #:dir or #:to" x y)]))
+  (unless (hash-has-key? arrow-paths direction)
+    (error 'arrow "#:dir should be up, down, left or right, got ~s" dir))
+  `(div [[class "grid-cell grid-cell--arrow"]
+         [role "button"] [tabindex "-1"]
+         [data-x ,(~a x)] [data-y ,(~a y)] [data-dir ,direction]
+         ,@(if target (list `[data-to ,(format "~a,~a" (car target) (cadr target))]) empty)
+         [aria-label ,(format "Arrow ~a" direction)]]
+        (svg [[class "grid-cell__arrow"] [viewBox "0 0 24 24"] [aria-hidden "true"]]
+             (path [[d ,(hash-ref arrow-paths direction)]]))))
 
 ;; ─── utility ─────────────────────────────────────────────────────────
 (define (decode-body elements)

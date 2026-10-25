@@ -6,7 +6,7 @@
 £tile[#:x 0 #:y 0 #:title "Sofreh Interlace" #:image "/images/Sofreh_Interlaceresi.png"
       #:caption "mixed media tapestry" #:date "2023"]{}
 
-£tile[#:x 1 #:y 0 #:title "Studio" #:image "/images/DSC_0793.JPG" #:focus "30% 50%"
+£tile[#:x 2 #:y 0 #:title "Studio" #:image "/images/DSC_0793.JPG" #:focus "30% 50%"
       #:caption "work table"]{
 Image tiles with text open side by side with it. Click the picture there for the full-screen view.
 }
@@ -25,6 +25,12 @@ Text tiles show a clipped preview; click to read the rest. Paragraphs, £link["/
 £sketch-page["/textiles/untitled-2024/images/PXL_20240315_125448530.jpg"]
 }
 
-£tile[#:x 2 #:y -1 #:title "Blue Stem" #:image "/textiles/blue-stem/images/PXL_20240219_175905460.jpg"
+£tile[#:x 2 #:y -2 #:title "Blue Stem" #:image "/textiles/blue-stem/images/PXL_20240219_175905460.jpg"
       #:caption "detail"]{}
+
+£; a path through the grid: Sofreh → Studio → Blue Stem → Untitled → On the loom
+£arrow[#:x 1 #:y 0 #:dir "right"]
+£arrow[#:x 2 #:y -1 #:dir "down"]
+£arrow[#:x 1 #:y -2 #:to "-1 0"]
+£arrow[#:x -1 #:y 1 #:dir "up" #:to "0 1"]
 }
