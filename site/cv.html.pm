@@ -1,5 +1,7 @@
 #lang pollen
 £(define-meta title "CV")
+£(define-meta seo-title "CV — Dominik Zarzycki, Textile Artist & Painter")
+£(define-meta description "CV of Dominik Zarzycki, textile artist and painter in Edinburgh: exhibitions at the Royal Scottish Academy and Visual Arts Scotland, awards and education.")
 
 £title{CV}
 

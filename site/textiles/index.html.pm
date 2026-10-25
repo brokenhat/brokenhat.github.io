@@ -1,5 +1,9 @@
 #lang pollen
 £(define-meta title "Textiles")
+£(define-meta seo-title "Textiles & Tapestries — Dominik Zarzycki")
+£(define-meta description "Tapestries and textiles by Dominik Zarzycki: handwoven and wet-felted works in handspun, naturally dyed wool, each with photos from the loom.")
+
+£title{Textiles}
 
 £works{
 £work["/textiles/z-flow/index.html" #:image "/textiles/z-flow/images/z-flow.jpg" #:title "z-flow" #:year "2025"]

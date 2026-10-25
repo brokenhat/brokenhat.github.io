@@ -35,7 +35,13 @@ site/
   example/                  demo pages for the tags (not in the menu):
                             subpage, tiles, walk (Highland walk route)
 
+  404.html.pm               "page not found" (GitHub Pages serves it)
+  sitemap.xml.pp            builds sitemap.xml (lib/seo.rkt)
+  robots.txt                points crawlers at the sitemap
+  favicon.svg/.ico, apple-touch-icon.png
+
   lib/
+    seo.rkt                 <head> tags, structured data, sitemap
     tags.rkt                all custom tag functions
     tiles.rkt               tile-grid tags
     thumbs.rkt              resized image copies (ImageMagick)
@@ -49,7 +55,35 @@ site/
   scripts/migrate.py        first content migration from the Flask DB
 ```
 
-## Command character
+## Search engines (SEO)
+
+`lib/seo.rkt` writes the `<head>` of every page: title, description, canonical address, link-preview tags (Open Graph, Twitter) and structured data (JSON-LD) that tells Google who you are and what each page shows. It also builds `sitemap.xml` (from `index.ptree`, with each page's images and last-commit date).
+
+What each page can set, near the top:
+
+```
+£(define-meta title "Thawing")                        ← name in the menu
+£(define-meta seo-title "Thawing, Woven Hanging (2025) — Dominik Zarzycki")
+£(define-meta description "Thawing (2025), woven with cotton, sisal …")
+£(define-meta image "/textiles/thawing/images/a.jpg")  ← link preview (else the page's first image)
+£(define-meta noindex "yes")                          ← keep out of Google and the sitemap
+```
+
+- **Title:** without `seo-title` it's "title — Dominik Zarzycki". Keep it under 60 characters.
+- **Description:** about 120–155 characters, saying what the page shows. Without one, the first paragraphs are used.
+- **Alt text:** give every image an `#:alt` that describes it (`£fig["…" #:alt "Madder root dye bath"]{}`). It's how Google Images, and people using screen readers, know what's in it.
+- **Piece pages** (`layout "piece"`) are described as artworks (VisualArtwork: name, year, technique, medium, size, image) from their `£piece` fields.
+- **The exhibition page** is described as an event by its `event-start`, `event-end`, `event-venue`, `event-street`, `event-locality`, `event-postcode` metas.
+- **New pages** go into `index.ptree` to be in the menu and the sitemap.
+- The example pages and `404.html` are `noindex`.
+
+Addresses: the published site uses clean URLs (`/textiles/thawing/`); the deploy sets `SITE_CLEAN_URLS=1` for that. Locally, links keep `index.html` because the dev server needs it. The site address (`site-url`) is set at the top of `lib/seo.rkt`, and in `robots.txt`.
+
+Images: pages offer 400–1600px copies (`srcset`) so phones download small files, declare their size (no jumping while loading), and load the first picture first.
+
+To check a page: https://search.google.com/test/rich-results and https://pagespeed.web.dev/
+
+
 
 This project uses `£` as the Pollen command character (instead of the default `◊`).
 

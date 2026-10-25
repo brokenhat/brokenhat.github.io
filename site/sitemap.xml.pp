@@ -1,0 +1,2 @@
+#lang pollen
+£(sitemap-xml)

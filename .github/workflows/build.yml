@@ -35,7 +35,13 @@ jobs:
 
       - name: Render site
         working-directory: site
-        run: raco pollen render -r .
+        # links to /x/ instead of /x/index.html (lib/seo.rkt)
+        env:
+          SITE_CLEAN_URLS: "1"
+        # 404.html isn't in index.ptree (not in the menu), so render it by name
+        run: |
+          raco pollen render -r .
+          raco pollen render 404.html.pm
 
       - name: Collect output
         run: |
@@ -45,6 +51,8 @@ jobs:
           cp -r site/js _site/site/js
           cp -r site/images _site/site/images
           if [ -d site/thumbs ]; then cp -r site/thumbs _site/site/thumbs; fi
+          # search engines and browsers: sitemap, robots.txt, icons
+          cp site/sitemap.xml site/robots.txt site/favicon.svg site/favicon.ico site/apple-touch-icon.png _site/site/
           # Copy piece-level images
           find site -path "*/images/*" -type f -exec cp --parents {} _site/ \;
           # Flatten: move site/* to _site root

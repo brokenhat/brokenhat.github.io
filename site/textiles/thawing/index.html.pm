@@ -1,6 +1,8 @@
 #lang pollen
 £(define-meta layout "piece")
 £(define-meta title "Thawing")
+£(define-meta seo-title "Thawing, Woven Hanging (2025) — Dominik Zarzycki")
+£(define-meta description "Thawing (2025), woven with cotton, sisal and dock sticks, dipped in logwood dye with iron sulphate and suspended from a branch. 78 × 115 cm.")
 
 £piece[#:title "Thawing"
        #:year "02.2025"
@@ -10,9 +12,9 @@
 
 Woven with cotton, sisal, and dock sticks, dipped in strong logwood dye (with iron sulphate), and suspended from a branch.
 
-£h3{Process & details}
+£h2[#:class "section-label"]{Process & details}
 
 £gallery{
-£fig["/textiles/thawing/images/PXL_20250222_153501222.jpg" #:alt "Thawing, detail"]{}
+£fig["/textiles/thawing/images/PXL_20250222_153501222.jpg" #:alt "Detail of Thawing: logwood-dyed grey textures under a pale band"]{}
 }
 }

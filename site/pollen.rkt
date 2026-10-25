@@ -7,6 +7,7 @@
          racket/string
          "lib/tags.rkt"
          "lib/tiles.rkt"
+         "lib/seo.rkt"
          "lib/git-timeline.rkt")
 
 ;; ─── setup ───────────────────────────────────────────────────────────
@@ -27,12 +28,24 @@
 ;; ─── root decoder ────────────────────────────────────────────────────
 (provide root)
 (define (root . elements)
-  (txexpr 'root empty
-          (decode-elements elements
-                          #:txexpr-elements-proc decode-paragraphs
-                          ;; tags that build their own markup (tile-grid) opt out
-                          #:exclude-attrs '((data-decoded "true"))
-                          #:string-proc (compose1 smart-quotes smart-dashes))))
+  (clean-links
+   (txexpr 'root empty
+           (decode-elements elements
+                            #:txexpr-elements-proc decode-paragraphs
+                            ;; tags that build their own markup (tile-grid) opt out
+                            #:exclude-attrs '((data-decoded "true"))
+                            #:string-proc (compose1 smart-quotes smart-dashes)))))
+
+;; links to /x/index.html become /x/ on the published site (lib/seo.rkt)
+(define (clean-links doc)
+  (map-elements (lambda (x)
+                  (if (and (txexpr? x) (eq? (get-tag x) 'a) (attr-ref x 'href #f))
+                      (attr-set x 'href (clean-href (attr-ref x 'href)))
+                      x))
+                doc))
+
+;; ─── search engines (lib/seo.rkt) ────────────────────────────────────
+(provide seo-head sitemap-xml)
 
 ;; ─── navigation helpers ──────────────────────────────────────────────
 (provide site-nav-items copyright-year subpages page-layout)
@@ -113,7 +126,7 @@
                          [(string? here) (string->symbol here)]
                          [else #f]))
   (define (nav-link p label)
-    `(a [[href ,(string-append "/" (symbol->string p))]
+    `(a [[href ,(clean-href (string-append "/" (symbol->string p)))]
          ,@(if (eq? p here-sym) '([aria-current "page"]) empty)]
         ,label))
   (define all-pages (children 'pagetree-root (current-pagetree)))
@@ -192,4 +205,4 @@
                                              [name (regexp-replace* #rx"\\.(html|pm)$" slug "")]
                                              [spaced (regexp-replace* #rx"-" name " ")])
                                         (string-titlecase spaced)))])
-                      `(li (a [[href ,(string-append "/" href)]] ,label))))))))
+                      `(li (a [[href ,(clean-href (string-append "/" href))]] ,label))))))))

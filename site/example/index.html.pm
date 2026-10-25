@@ -1,5 +1,6 @@
 #lang pollen
 £(define-meta title "Example")
+£(define-meta noindex "yes")
 
 £title{Example Section}
 

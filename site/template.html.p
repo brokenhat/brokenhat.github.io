@@ -3,7 +3,11 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>£(or (select-from-metas 'title here) "Dominik Zarzycki")</title>
+  £(seo-head here metas doc)
+  <meta name="theme-color" content="#f5f2ed">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="/favicon.ico" sizes="48x48">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <script>document.documentElement.classList.add('js')</script>
   <link rel="stylesheet" href="/css/site.css">
   £(if (equal? (page-layout metas) "tiles") "<link rel=\"stylesheet\" href=\"/css/tiles.css\">" "")

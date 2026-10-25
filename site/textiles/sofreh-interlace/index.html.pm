@@ -1,6 +1,8 @@
 #lang pollen
 £(define-meta layout "piece")
 £(define-meta title "Sofreh Interlace")
+£(define-meta seo-title "Sofreh Interlace, Tapestry (2023) — Dominik Zarzycki")
+£(define-meta description "Sofreh Interlace (2023): watercolour, pigments, paper, wool and silk on cotton warp, reflecting on Persian dining-cloths. Shown at the RSW 143rd show, RSA.")
 
 £piece[#:title "Sofreh Interlace: Reflections on persian dining-cloths"
        #:year "2023"
@@ -12,10 +14,10 @@
 
 The end piece of the project created with the help of RSW in Edinburgh.
 
-£h3{Process & details}
+£h2[#:class "section-label"]{Process & details}
 
 £gallery{
-£fig["/textiles/sofreh-interlace/images/PXL_20240105_213354395.MP.jpg" #:alt "Sofreh Interlace"]{}
+£fig["/textiles/sofreh-interlace/images/PXL_20240105_213354395.MP.jpg" #:alt "Sofreh Interlace hanging on a white wall"]{}
 }
 
 £git-timeline["textiles/sofreh-interlace"]

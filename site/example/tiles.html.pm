@@ -1,6 +1,7 @@
 #lang pollen
 £(define-meta layout "tiles")
 £(define-meta title "Tiles")
+£(define-meta noindex "yes")
 
 £tile-grid{
 £tile[#:x 0 #:y 0 #:title "Sofreh Interlace" #:image "/images/Sofreh_Interlaceresi.png"

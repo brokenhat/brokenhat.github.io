@@ -10,7 +10,7 @@
 ;; and cached under thumbs/ (regenerated when the original changes).
 ;; Anything that can't be resized falls back to the original path.
 
-(provide resized)
+(provide resized image-size)
 
 ;; The site root, from this file's location: Pollen's current-project-root
 ;; is the folder being rendered, which for pages outside the pagetree
@@ -22,6 +22,41 @@
 ;; ImageMagick 7 installs `magick`; Ubuntu's ImageMagick 6 package `convert`
 (define magick
   (or (find-executable-path "magick") (find-executable-path "convert")))
+
+;; ImageMagick 7: `magick identify`; 6: a separate `identify`
+(define identify
+  (cond [(and magick (regexp-match? #rx"magick(\\.exe)?$" (path->string magick)))
+         (list magick "identify")]
+        [(find-executable-path "identify") => list]
+        [else #f]))
+
+;; ─── image-size ──────────────────────────────────────────────────────
+;; (image-size "/thumbs/1600/a.jpg") → (values 1600 1067), or #f #f.
+;; Read from the file header (fast); remembered per file and mtime.
+(define sizes (make-hash))
+
+(define (image-size src)
+  (define file (and (string-prefix? src "/") (build-path root (substring src 1))))
+  (cond
+    [(not (and identify file (file-exists? file))) (values #f #f)]
+    [else
+     (define key (cons (path->string file) (file-or-directory-modify-seconds file)))
+     (define wh
+       (hash-ref! sizes key
+                  (lambda ()
+                    (define out
+                      (with-output-to-string
+                        (lambda ()
+                          (parameterize ([current-error-port (open-output-nowhere)])
+                            (apply system* (append identify
+                                                   (list "-format" "%w %h"
+                                                         (string-append (path->string file) "[0]"))))))))
+                    (match-dims out))))
+     (if wh (values (car wh) (cdr wh)) (values #f #f))]))
+
+(define (match-dims s)
+  (define m (regexp-match #px"^(\\d+) (\\d+)" s))
+  (and m (cons (string->number (cadr m)) (string->number (caddr m)))))
 
 ;; ─── resized ─────────────────────────────────────────────────────────
 ;; (resized "/images/a.png" 400 'fill) → "/thumbs/400f/images/a.jpg"
@@ -66,7 +101,8 @@
                "-auto-orient"                              ; phone photos
                "-resize" geometry
                "-background" "white" "-alpha" "remove" "-alpha" "off"
-               "-strip" "-quality" "82" "-interlace" "Plane"
+               ;; 4:2:0 colour + q78: much smaller files, no visible difference
+               "-strip" "-sampling-factor" "4:2:0" "-quality" "78" "-interlace" "Plane"
                (string-append "jpg:" (path->string tmp)))))
   (cond
     [ok? (rename-file-or-directory tmp out #t) #t]

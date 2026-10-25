@@ -1,6 +1,15 @@
 #lang pollen
 £(define-meta layout "piece")
 £(define-meta title "In a Zigzag Way")
+£(define-meta seo-title "In a Zigzag Way — Solo Exhibition by Dominik Zarzycki")
+£(define-meta description "Dominik Zarzycki's first solo exhibition: textiles and paintings exploring the zigzag. Out of the Blue Drill Hall, Edinburgh, 8–18 September 2026.")
+£(define-meta event-start "2026-09-08")
+£(define-meta event-end "2026-09-18")
+£(define-meta event-venue "Out of the Blue Drill Hall")
+£(define-meta event-street "36 Dalmeny Street")
+£(define-meta event-locality "Edinburgh")
+£(define-meta event-postcode "EH6 8RG")
+£(define-meta event-country "GB")
 
 £piece[#:title "In a Zigzag Way"
        #:exhibition "solo exhibition, Out of the Blue Drill Hall, Edinburgh"]{

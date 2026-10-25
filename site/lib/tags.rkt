@@ -43,7 +43,7 @@
     (for/list ([p (in-list meta-pairs)])
       `(div [[class "meta-pair"]] (dt ,(car p)) (dd ,(cadr p)))))
   `(article [[class "piece"]]
-            ,@(if (non-empty-string? title) (list `(h2 ,title)) empty)
+            ,@(if (non-empty-string? title) (list `(h1 ,title)) empty)
             ,@(if (null? dl-items) empty (list `(dl [[class "piece-meta"]] ,@dl-items)))
             (div [[class "piece-body"]]
                  ,@(decode-elements body
@@ -53,27 +53,68 @@
 ;; ─── gallery ─────────────────────────────────────────────────────────
 (define (gallery . items)
   `(div [[class "gallery"]]
-        ,@(filter txexpr? items)))
+        ,@(for/list ([fig (in-list (filter txexpr? items))] [i (in-naturals)])
+            ;; the first picture is usually the largest thing on screen:
+            ;; load it at once (the rest load as they come into view)
+            (if (zero? i) (eager-img fig #t) fig))))
+
+(define (eager-img fig first?)
+  (map-elements (lambda (x)
+                  (if (and (txexpr? x) (eq? (get-tag x) 'img))
+                      (let ([x (remove-attrs-named x 'loading)])
+                        (if first? (attr-set x 'fetchpriority "high") x))
+                      x))
+                fig))
+
+(define (remove-attrs-named x name)
+  (txexpr (get-tag x)
+          (filter (lambda (a) (not (eq? (car a) name))) (get-attrs x))
+          (get-elements x)))
+
+;; a gallery cell is about a quarter of the page wide (half on tablets,
+;; all of it on phones)
+(define gallery-sizes "(max-width: 600px) 100vw, (max-width: 900px) 50vw, 25vw")
 
 ;; ─── fig ─────────────────────────────────────────────────────────────
 (define (fig src #:alt [alt ""] . caption)
   `(figure [[class "gallery-item"]]
-           ,(page-img src alt)
+           ,(page-img src alt #:sizes gallery-sizes)
            ,@(if (andmap whitespace? caption)
                  empty
                  (list `(figcaption ,@caption)))))
 
-;; Pages show a 1600px copy (lib/thumbs.rkt; site-absolute paths only)
-;; and keep the original in data-full for the viewer's loupe and 1:1 view.
-(define (page-img src alt)
+;; Pages show resized copies (lib/thumbs.rkt; site-absolute paths only):
+;; srcset offers 400–1600px so small screens and gallery cells load
+;; small files; src (the 1600px copy) is what the viewer enlarges, and
+;; data-full keeps the original for its loupe and 1:1 view.
+;; Width and height reserve the space before it loads (no layout jump);
+;; eager images (a page's main picture, the first gallery cells) load
+;; first instead of lazily.
+(define (page-img src alt #:eager [eager #f] #:sizes [sizes "100vw"])
   (define shown (resized src 1600))
-  `(img [[src ,shown] [alt ,alt] [loading "lazy"] [decoding "async"]
+  (define-values (w h) (image-size shown))
+  ;; one copy per width: small originals give the same copy twice
+  (define candidates
+    (map cdr
+         (remove-duplicates
+          (filter values
+                  (for/list ([size (in-list '(400 600 800 1200 1600))])
+                    (define copy (resized src size))
+                    (define-values (cw ch) (image-size copy))
+                    (and cw (not (equal? copy src)) (cons cw (format "~a ~aw" copy cw)))))
+          #:key car)))
+  `(img [[src ,shown] [alt ,alt]
+         ,@(if (and w h) `([width ,(~a w)] [height ,(~a h)]) empty)
+         ,@(if (> (length candidates) 1) `([srcset ,(string-join candidates ", ")] [sizes ,sizes]) empty)
+         ,@(if eager '([fetchpriority "high"]) '([loading "lazy"]))
+         [decoding "async"]
          ,@(if (equal? shown src) empty (list `[data-full ,src]))]))
 
 ;; ─── image ───────────────────────────────────────────────────────────
 (define (image src #:alt [alt ""] #:class [cls ""] . caption)
   `(figure [[class ,(string-append "image " cls)]]
-           ,(page-img src alt)
+           ,(page-img src alt #:eager (regexp-match? #px"\\bhero\\b" cls)
+                      #:sizes "(max-width: 1000px) 100vw, 1000px")
            ,@(if (andmap whitespace? caption)
                  empty
                  (list `(figcaption ,@caption)))))
@@ -82,13 +123,26 @@
 ;; Index of a section's pieces: a square thumbnail, title and year, each
 ;; linking to the piece's own page.
 (define (works . items)
-  `(ul [[class "works"]] ,@(filter txexpr? items)))
+  `(ul [[class "works"]]
+       ,@(for/list ([w (in-list (filter txexpr? items))] [i (in-naturals)])
+           (if (zero? i) (eager-img w #t) w))))
 
+;; square crops: 400/800/1200px, the browser picks by cell width
 (define (work href #:image img #:title title #:year [year ""])
+  (define squares
+    (map cdr
+         (remove-duplicates
+          (filter values
+                  (for/list ([size (in-list '(400 800 1200))])
+                    (define copy (resized img size 'fill))
+                    (define-values (cw ch) (image-size copy))
+                    (and cw (cons cw (format "~a ~aw" copy cw)))))
+          #:key car)))
   `(li [[class "work"]]
        (a [[href ,href]]
-          (img [[src ,(resized img 600 'fill)]
-                [srcset ,(format "~a 1x, ~a 2x" (resized img 600 'fill) (resized img 1200 'fill))]
+          (img [[src ,(resized img 800 'fill)]
+                ,@(if (pair? squares) `([srcset ,(string-join squares ", ")] [sizes ,gallery-sizes]) empty)
+                [width "800"] [height "800"]
                 [alt ,title] [loading "lazy"] [decoding "async"]])
           (span [[class "work-title"]] ,title)
           ,@(if (non-empty-string? year) (list `(span [[class "work-year"]] ,year)) empty))))

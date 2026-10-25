@@ -1,5 +1,9 @@
 #lang pollen
 £(define-meta title "Dominik Zarzycki")
+£(define-meta seo-title "Dominik Zarzycki — Textile Artist & Painter, Edinburgh")
+£(define-meta description "Dominik Zarzycki, textile artist and painter in Edinburgh: handwoven tapestries in handspun, naturally dyed wool, paintings, drawings and generative art.")
+
+£h1[#:class "visually-hidden"]{Dominik Zarzycki — textile artist and painter, Edinburgh}
 
 £section-intro{
 I like weaving because weaving is a long process. It is a process because transformations occur. Hairy twisted material transforms into a construction with a specific order. The orders can vary, though none contradicts the binary growth of matter. The material wraps around the warp threads, creates intersections with them, and is then beaten, sometimes with great force. A bobbin or a special beater is used for this.

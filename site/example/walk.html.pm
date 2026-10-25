@@ -1,6 +1,7 @@
 #lang pollen
 £(define-meta layout "tiles")
 £(define-meta title "Highland walk")
+£(define-meta noindex "yes")
 
 £; A route through the Highland Series, made with arrows. Map (x right, y up):
 £;

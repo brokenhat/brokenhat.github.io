@@ -1,6 +1,7 @@
 #lang pollen
 £(define-meta layout "piece")
 £(define-meta title "Example Subpage")
+£(define-meta noindex "yes")
 
 £piece[#:title "Example Subpage"
        #:year "2024"

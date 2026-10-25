@@ -1,6 +1,8 @@
 #lang pollen
 £(define-meta layout "piece")
 £(define-meta title "Blue Stem")
+£(define-meta seo-title "Blue Stem, Kilim Tapestry (2024) — Dominik Zarzycki")
+£(define-meta description "Blue Stem (2024), a handwoven wool-on-wool tapestry stitched into a riband form, inspired by Mazandaran and jajim kilims. Shown at Dalkeith Palace.")
 
 £piece[#:title "Blue Stem"
        #:year "2024"
@@ -17,10 +19,10 @@ It was made like that to highlight the technique of stitching together multiple 
 
 This one is especially inspired by mazandaran and jajim kilims from northern Iran.
 
-£h3{Process & details}
+£h2[#:class "section-label"]{Process & details}
 
 £gallery{
-£fig["/textiles/blue-stem/images/PXL_20240219_1758503232.jpg" #:alt "Blue Stem, detail"]{}
-£fig["/textiles/blue-stem/images/PXL_20240812_115323987_1.jpg" #:alt "Blue Stem"]{}
+£fig["/textiles/blue-stem/images/PXL_20240219_1758503232.jpg" #:alt "Detail of Blue Stem: red and striped strips joined with a blue stitch"]{}
+£fig["/textiles/blue-stem/images/PXL_20240812_115323987_1.jpg" #:alt "Blue Stem hanging, folded over at the top"]{}
 }
 }
