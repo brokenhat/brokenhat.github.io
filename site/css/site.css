@@ -31,7 +31,7 @@ body {
 
 /* ─── header + nav ──────────────────────────────────────────────── */
 /* Name on the left, links on the right. Sections with subpages open a
-   dropdown on hover or keyboard focus. Below 1240px, and on touch-only
+   dropdown on hover or keyboard focus. Below 1120px, and on touch-only
    screens of any size (no hover for dropdowns), the links collapse
    into a Menu button (only when JS is on — see the inline script in the
    templates; without JS the links simply wrap).                        */
@@ -69,7 +69,7 @@ header {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 0 1.4rem;
+  gap: 0 1.75rem;
   list-style: none;
 }
 
@@ -178,7 +178,7 @@ header {
   display: none;
 }
 
-@media (max-width: 1240px), (hover: none) and (pointer: coarse) {
+@media (max-width: 1120px), (hover: none) and (pointer: coarse) {
   .js .nav-toggle {
     display: inline-flex;
     align-items: center;

@@ -47,7 +47,7 @@ body.page--tiles footer {
 
 /* phones and tablets: the grid runs to the bottom edge, as in blog-tile
    (same breakpoint as the collapsed menu in site.css) */
-@media (max-width: 1240px), (hover: none) and (pointer: coarse) {
+@media (max-width: 1120px), (hover: none) and (pointer: coarse) {
   body.page--tiles footer {
     display: none;
   }

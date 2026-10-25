@@ -7,7 +7,6 @@
          racket/string
          "lib/tags.rkt"
          "lib/tiles.rkt"
-         "lib/automata.rkt"
          "lib/git-timeline.rkt")
 
 ;; ─── setup ───────────────────────────────────────────────────────────
@@ -23,7 +22,6 @@
 ;; ─── re-provide tags + tiles + git-timeline for .pm files ────────────
 (provide (all-from-out "lib/tags.rkt")
          (all-from-out "lib/tiles.rkt")
-         (all-from-out "lib/automata.rkt")
          (all-from-out "lib/git-timeline.rkt"))
 
 ;; ─── root decoder ────────────────────────────────────────────────────
@@ -45,10 +43,10 @@
 
 ;; ─── page layouts ────────────────────────────────────────────────────
 ;; One template (template.html.p) serves every page. A page picks its
-;; layout with £(define-meta layout "piece"), "tiles" or "automata"; without it, it's
+;; layout with £(define-meta layout "piece") or "tiles"; without it, it's
 ;; a plain page. (Per-page templates via define-meta template resolve
 ;; relative to the page's folder, so they broke for pages in subfolders.)
-(define layouts '("page" "piece" "tiles" "automata"))
+(define layouts '("page" "piece" "tiles"))
 
 (define (page-layout metas)
   (define layout (hash-ref metas 'layout #f))

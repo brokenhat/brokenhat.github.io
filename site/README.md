@@ -39,24 +39,17 @@ site/
     untitled-2024/
       index.html.pm
       images/
-  woven-automata/
-    index.html.pm           the Woven Automata page (last menu item)
-    prolog/                 copy of woven_automata.pl + web.pl entry point
 
   lib/
     tags.rkt                all custom tag functions
     tiles.rkt               tile-grid tags
     thumbs.rkt              resized image copies (ImageMagick)
     git-timeline.rkt        reads git log per piece folder
-    automata.rkt            Woven Automata controls + viewer markup
 
   css/site.css              stylesheet
   css/tiles.css             tile-grid styles
-  css/automata.css          Woven Automata styles
   js/nav.js                 collapses the menu when it doesn't fit
   js/tile-grid.js           tile-grid pan/zoom + viewers
-  js/woven-automata.js      Woven Automata page: settings, viewer, PDF
-  js/woven-worker.js        runs the Prolog program in the browser
   images/                   shared images
   scripts/migrate.py        content migration from Flask DB
 ```
@@ -227,37 +220,6 @@ Copies are remade when the original changes. Image paths must start with `/` (e.
 | `css/tiles.css` | Look of tiles and viewers |
 | `js/tile-grid.js` | Dragging, zooming, opening tiles |
 
-### Woven Automata
-
-`woven-automata/index.html.pm` is an interactive page around the Prolog program in `../../woven_automata/woven_automata.pl`. Visitors choose the settings, generate a design, step through it pick by pick (the current pick is highlighted, with its bobbins listed), and download a plain PDF of the design and instructions.
-
-How it works:
-
-- The page markup comes from one tag, `£woven-automata-app[]` (`lib/automata.rkt`), and the page uses `£(define-meta layout "automata")`.
-- `js/woven-worker.js` loads SWI-Prolog compiled to WebAssembly (`swipl-wasm` from jsDelivr, about 4 MB, cached after the first visit) in a background worker, so long searches don't freeze the page.
-- The worker consults two files from `woven-automata/prolog/`: `woven_automata.pl` (your program, **unchanged**) and `web.pl`, a small entry point (`wa_generate/2`) that sets the parameters, runs the chosen generator and returns the rows, the bobbin layout per pick, the program's own instructions and the score.
-- Every run is seeded: the same settings and seed always give the same design.
-- **Bobbins** is used exactly in every mode (`web.pl` runs its own search loop around the program's generators, evaluations and evolution; the program's own searches vary the count by ±3 and uniform mode sets it from the warp width). Limit: warp ÷ 3. **Cap** (most bobbins, including ones born while weaving) is raised to the start count if lower.
-- **CA rule**: `auto` keeps each mode's behaviour (uniform picks a rule with its template, the others weave without one); `none` turns it off; a number 0–255 fixes that Wolfram rule for any mode (uniform keeps it through its search and mutations via `ca_rule_fixed`). The instructions then include the rule's table.
-- The PDF is made in the browser with jsPDF (from cdnjs), loaded only when someone presses Download PDF.
-
-**When you change the Prolog program**, copy it into the site, because the site uses its own copy:
-
-```bash
-cp -f ../../woven_automata/woven_automata.pl woven-automata/prolog/woven_automata.pl
-```
-
-If you rename or change the arguments of a predicate that `web.pl` calls (`set_warp/1`, `init_bobbins/1`, `search_*`, `evolve*`, `print_instructions/1`, …), update `web.pl` to match. The deploy workflow publishes every `*/prolog/*.pl` file.
-
-| File | Role |
-|------|------|
-| `woven-automata/index.html.pm` | The page: title, intro text, the app tag |
-| `woven-automata/prolog/` | The Prolog program and its web entry point |
-| `lib/automata.rkt` | Controls, viewer and panels (plain HTML, works before JS loads) |
-| `js/woven-automata.js` | Settings, drawing the fabric, pick-by-pick viewer, PDF |
-| `js/woven-worker.js` | Runs Prolog off the main thread |
-| `css/automata.css` | Look of the page on desktop, tablet and phone |
-
 ### Process journal
 
 | Tag | Usage |
@@ -375,7 +337,6 @@ Every page uses `template.html.p`. Pick a layout near the top of the page:
 ```
 £(define-meta layout "piece")   ← a single work (adds class content--piece)
 £(define-meta layout "tiles")   ← a tile grid page (full-height grid + tile scripts)
-£(define-meta layout "automata") ← the Woven Automata page (its CSS + script)
 ```
 
 Without a `layout` line the page is a plain page. This works the same at any folder depth.

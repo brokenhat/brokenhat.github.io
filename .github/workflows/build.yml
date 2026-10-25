@@ -45,8 +45,6 @@ jobs:
           cp -r site/js _site/site/js
           cp -r site/images _site/site/images
           if [ -d site/thumbs ]; then cp -r site/thumbs _site/site/thumbs; fi
-          # Prolog sources run in the browser by the Woven Automata page
-          find site -path "*/prolog/*.pl" -exec cp --parents {} _site/ \;
           # Copy piece-level images
           find site -path "*/images/*" -type f -exec cp --parents {} _site/ \;
           # Flatten: move site/* to _site root
