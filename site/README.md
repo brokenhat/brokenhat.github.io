@@ -16,29 +16,24 @@ site/
   index.ptree               navigation hierarchy
   template.html.p           the one HTML template (layout chosen per page)
 
-  index.html.pm             homepage
-  about.html.pm             artist statement
+  index.html.pm             homepage: artist statement (English + Polish)
   cv.html.pm                CV
 
-  paintings/index.html.pm   section indexes
-  generative/index.html.pm
-  drawings/index.html.pm
-  highland-series/
-    index.html.pm
-    rannoch-moor-swings.html.pm
-    buachaille-etive-mor.html.pm
-    lost-on-criese.html.pm
+  in-a-zigzag-way/          solo exhibition page (+ images/)
   textiles/
-    index.html.pm
-    sofreh-interlace/       piece folder (git-as-journal unit)
-      index.html.pm
-      images/
-    blue-stem/
-      index.html.pm
-      images/
+    index.html.pm           the works, linking to their pages (£works)
+    z-flow/                 one folder per piece: index.html.pm + images/
+    the-rise-of-the-zigzag/   (main image, text, "Process & details")
+    bivium-tends-towards-infinity/
+    thawing/
     untitled-2024/
-      index.html.pm
-      images/
+    blue-stem/
+    sofreh-interlace/       also has a git-as-journal timeline
+  studio/                   loom, wheel, natural dyeing
+  paintings/  generative/  drawings/   galleries (+ images/)
+
+  example/                  demo pages for the tags (not in the menu):
+                            subpage, tiles, walk (Highland walk route)
 
   lib/
     tags.rkt                all custom tag functions
@@ -50,8 +45,8 @@ site/
   css/tiles.css             tile-grid styles
   js/nav.js                 collapses the menu when it doesn't fit
   js/tile-grid.js           tile-grid pan/zoom + viewers
-  images/                   shared images
-  scripts/migrate.py        content migration from Flask DB
+  images/                   images used by the example pages
+  scripts/migrate.py        first content migration from the Flask DB
 ```
 
 ## Command character
@@ -96,6 +91,12 @@ All `#:` keyword arguments are optional.
 | `£gallery{ £fig[...]{} ... }` | Grid of figures |
 | `£fig["path.jpg" #:alt "desc"]{caption}` | Figure with lazy-loaded image |
 | `£image["path.jpg" #:alt "desc" #:class "hero"]{}` | Standalone image |
+| `£works{ £work[...] ... }` | A section's pieces as square thumbnails linking to their pages |
+| `£work["/textiles/x/index.html" #:image "/textiles/x/images/a.jpg" #:title "X" #:year "2025"]` | One piece in `£works` |
+
+Write image paths from the site root (`/paintings/images/a.jpg`): pages then show a 1600px copy (see Image sizes below) and the viewer's loupe and full view load the original. Relative paths still work but always serve the original file.
+
+The Example section (`example/`) is not in `index.ptree`, so it isn't in the menu; its pages still build and work at `/example/…`.
 
 ### Tile grid pages
 

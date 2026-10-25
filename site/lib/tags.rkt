@@ -4,9 +4,10 @@
          txexpr
          racket/list
          racket/string
-         racket/format)
+         racket/format
+         "thumbs.rkt")
 
-(provide piece gallery fig image process-note section-intro
+(provide piece gallery fig image works work process-note section-intro
          cv-section cv-entry exhibition award
          lede aside smallcaps blockquote link ext-link
          youtube
@@ -57,18 +58,40 @@
 ;; ─── fig ─────────────────────────────────────────────────────────────
 (define (fig src #:alt [alt ""] . caption)
   `(figure [[class "gallery-item"]]
-           (img [[src ,src] [alt ,alt] [loading "lazy"]])
+           ,(page-img src alt)
            ,@(if (andmap whitespace? caption)
                  empty
                  (list `(figcaption ,@caption)))))
 
+;; Pages show a 1600px copy (lib/thumbs.rkt; site-absolute paths only)
+;; and keep the original in data-full for the viewer's loupe and 1:1 view.
+(define (page-img src alt)
+  (define shown (resized src 1600))
+  `(img [[src ,shown] [alt ,alt] [loading "lazy"] [decoding "async"]
+         ,@(if (equal? shown src) empty (list `[data-full ,src]))]))
+
 ;; ─── image ───────────────────────────────────────────────────────────
 (define (image src #:alt [alt ""] #:class [cls ""] . caption)
   `(figure [[class ,(string-append "image " cls)]]
-           (img [[src ,src] [alt ,alt] [loading "lazy"]])
+           ,(page-img src alt)
            ,@(if (andmap whitespace? caption)
                  empty
                  (list `(figcaption ,@caption)))))
+
+;; ─── works / work ────────────────────────────────────────────────────
+;; Index of a section's pieces: a square thumbnail, title and year, each
+;; linking to the piece's own page.
+(define (works . items)
+  `(ul [[class "works"]] ,@(filter txexpr? items)))
+
+(define (work href #:image img #:title title #:year [year ""])
+  `(li [[class "work"]]
+       (a [[href ,href]]
+          (img [[src ,(resized img 600 'fill)]
+                [srcset ,(format "~a 1x, ~a 2x" (resized img 600 'fill) (resized img 1200 'fill))]
+                [alt ,title] [loading "lazy"] [decoding "async"]])
+          (span [[class "work-title"]] ,title)
+          ,@(if (non-empty-string? year) (list `(span [[class "work-year"]] ,year)) empty))))
 
 ;; ─── process-note ────────────────────────────────────────────────────
 (define (process-note #:date [date ""] . body)

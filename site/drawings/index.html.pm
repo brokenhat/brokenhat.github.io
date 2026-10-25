@@ -1,22 +1,14 @@
 #lang pollen
 £(define-meta title "Drawings")
 
-£section-intro{
-This page consists mainly scans from my sketchbook and it is going to be constantly updated.
-
-Some of these sketches were the basis for larger projects.
-}
-
 £gallery{
-£fig["images/resized-slajd10.png"]{}
-£fig["images/resized-slajd17.png"]{}
-£fig["images/pic30.png"]{}
-£fig["images/pic11.png"]{}
-£fig["images/pic19.png"]{}
-£fig["images/deep_fried_mars-res.jpg"]{}
-£fig["images/B-612.jpg"]{}
-£fig["images/pic29.png"]{}
-£fig["images/resized-20190408_180214.jpg"]{}
-£fig["images/pic8.png"]{}
-£fig["images/abs.jpg"]{}
+£fig["/drawings/images/pic11.png"]{}
+£fig["/drawings/images/deep_fried_mars-res.jpg"]{}
+£fig["/drawings/images/pic19.png"]{}
+£fig["/drawings/images/B-612.jpg"]{}
+£fig["/drawings/images/abs.jpg"]{}
+£fig["/drawings/images/pic29.png"]{}
+£fig["/drawings/images/PXL_20240316_103524644.jpg"]{}
+£fig["/drawings/images/resized-slajd17.png"]{}
+£fig["/drawings/images/resized-slajd10.png"]{}
 }

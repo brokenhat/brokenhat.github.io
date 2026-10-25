@@ -676,6 +676,76 @@ a:hover {
   border: 0;
 }
 
+/* ─── works: a section's pieces, linking to their pages ─────────── */
+.works {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 2rem var(--gap);
+  margin: 2rem 0;
+  list-style: none;
+}
+
+.work a {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  color: inherit;
+  text-decoration: none;
+}
+
+.work img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  display: block;
+  margin-bottom: 0.5rem;
+  transition: opacity 0.2s ease;
+}
+
+.work a:hover img {
+  opacity: 0.85;
+}
+
+.work-title {
+  font-size: 0.9rem;
+}
+
+.work a:hover .work-title {
+  color: var(--accent);
+}
+
+.work-year {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.work a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* ─── contact links in the footer ──────────────────────────────── */
+footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.5rem 2rem;
+}
+
+.footer-contact {
+  display: flex;
+  gap: 1.5rem;
+}
+
+footer a {
+  color: inherit;
+  text-decoration: none;
+}
+
+footer a:hover {
+  color: var(--accent);
+}
+
 /* ─── footer ────────────────────────────────────────────────────── */
 footer {
   padding: 3rem var(--page-gutter) 2rem;

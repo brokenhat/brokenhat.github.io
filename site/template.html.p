@@ -25,6 +25,7 @@
 
   <footer>
     <p>£(copyright-year) Dominik Zarzycki</p>
+    <p class="footer-contact"><a href="https://instagram.com/dominic_zarzycki">Instagram</a><a href="mailto:domino.zarzycki@gmail.com">Email</a></p>
   </footer>
   <script src="/js/nav.js" defer></script>
   <script src="/js/viewer.js" defer></script>

@@ -1,16 +1,21 @@
 #lang racket/base
-(require pollen/setup
-         racket/file
+(require racket/file
          racket/path
          racket/port
          racket/string
-         racket/system)
+         racket/system
+         racket/runtime-path)
 
 ;; Resized copies of site images, made with ImageMagick while a page renders
 ;; and cached under thumbs/ (regenerated when the original changes).
 ;; Anything that can't be resized falls back to the original path.
 
 (provide resized)
+
+;; The site root, from this file's location: Pollen's current-project-root
+;; is the folder being rendered, which for pages outside the pagetree
+;; (rendered folder by folder) is their own subfolder.
+(define-runtime-path root "..")
 
 (define thumb-dir "thumbs")
 
@@ -28,7 +33,6 @@
   (cond
     [(not (and magick (string-prefix? src "/"))) src]
     [else
-     (define root (current-project-root))
      (define rel (substring src 1))
      (define source (build-path root rel))
      (define out-rel

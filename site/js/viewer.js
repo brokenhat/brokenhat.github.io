@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', init);
 function init() {
   document.querySelectorAll('main img').forEach(function (img) {
     if (img.closest('.tile-grid')) return; // tile-grid.js opens these itself
+    if (img.closest('a')) return;          // linked images (e.g. works) just link
     img.style.cursor = 'pointer';
     img.addEventListener('click', function () { openViewer(img); });
   });
@@ -11,7 +12,9 @@ function init() {
 
 /* ── state ─────────────────────────────────────────────────────────────── */
 var overlay, canvas, ctx, navImg, loupe, fullImg, viewerEl, fullView;
-var images = [], captions = [], currentIndex = 0;
+// images: what the page shows (a 1600px copy); fulls: the originals,
+// used where detail matters (the loupe and the full view)
+var images = [], fulls = [], captions = [], currentIndex = 0;
 // loupe side as a fraction of the image's shorter side; remembered per visitor
 var LOUPE_MIN = 0.1, LOUPE_MAX = 0.8;
 var loupeSize = readLoupeSize();
@@ -20,6 +23,7 @@ var isMobile = false;
 
 function openViewer(clickedImg) {
   images = [];
+  fulls = [];
   captions = [];
 
   var gallery = clickedImg.closest('.gallery');
@@ -29,6 +33,7 @@ function openViewer(clickedImg) {
       var cap = item.querySelector('figcaption');
       if (img) {
         images.push(img.src);
+        fulls.push(img.dataset.full || img.src);
         captions.push(cap ? cap.textContent : '');
       }
     });
@@ -36,6 +41,7 @@ function openViewer(clickedImg) {
     var fig = clickedImg.closest('figure');
     var cap = fig ? fig.querySelector('figcaption') : null;
     images.push(clickedImg.src);
+    fulls.push(clickedImg.dataset.full || clickedImg.src);
     captions.push(cap ? cap.textContent : '');
   }
 
@@ -190,9 +196,9 @@ function loadImage(idx) {
     var rect = navImg.getBoundingClientRect();
     updateLoupeAt(rect.width / 2, rect.height / 2);
   };
-  fullImg.src = images[idx];
+  fullImg.src = fulls[idx];
   navImg.src = images[idx];
-  fullView.src = images[idx];
+  fullView.src = fulls[idx];
 
   var cap = overlay.querySelector('.viewer-caption');
   cap.textContent = captions[idx] || '';
