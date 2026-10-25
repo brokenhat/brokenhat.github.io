@@ -823,8 +823,9 @@
   /* ── touch: swipe up past the end to close ─────────────────────────── */
 
   // Once a viewer is scrolled to its end (or has nothing to scroll), a
-  // further upward swipe drags it up; let go fast enough, or far enough,
-  // and it closes, otherwise it springs back.
+  // new upward swipe drags it up; let go fast enough, or far enough, and
+  // it closes, otherwise it springs back. A swipe that only reaches the
+  // end on the way never closes: reading fast to the bottom is safe.
   const SWIPE_CLOSE_SPEED = 0.45;   // px/ms upward at release
   const SWIPE_CLOSE_MIN = 24;       // px dragged, so a tap-flick doesn't count
   const SWIPE_CLOSE_FAR = 0.3;      // of the screen height: closes at any speed
@@ -860,7 +861,7 @@
     dialog.addEventListener('touchstart', (e) => {
       if (e.touches.length !== 1) { g = null; return; }
       const t = e.touches[0];
-      g = { x: t.clientX, y: t.clientY, base: null, scroller: scrollerIn(dialog, e.target), samples: [] };
+      g = { x: t.clientX, y: t.clientY, base: null, armed: atEnd(scrollerIn(dialog, e.target)), samples: [] };
     }, { passive: true });
     dialog.addEventListener('touchmove', (e) => {
       if (!g || e.touches.length !== 1) return;
@@ -869,7 +870,7 @@
         const dx = t.clientX - g.x;
         const dy = t.clientY - g.y;
         // start once the finger goes up, mostly vertically, with the end reached
-        if (dy > -6 || Math.abs(dy) < Math.abs(dx) || !atEnd(g.scroller)) return;
+        if (!g.armed || dy > -6 || Math.abs(dy) < Math.abs(dx)) return;
         g.base = t.clientY;
         dialog.style.transition = 'none';
       }
