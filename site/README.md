@@ -202,7 +202,7 @@ Along a path:
 - With a tile selected, the arrow key in the arrow's direction follows it.
 - Every viewer (text, image, lightbox, sketchbook) shows **← previous · next →** buttons at the top, so visitors can go through the route without closing anything. The ← → keys do the same, except in a sketchbook, where they turn pages.
 
-`example/tiles.html.pm` has a route through all five of its tiles. An arrow with nothing to lead to is drawn faded.
+`example/tiles.html.pm` has a route through all five of its tiles. `example/walk.html.pm` (Example → Highland walk) is a fuller one, with a map of the route in its comments: turns, an arrow that skips an empty square, a long jump with `#:to`, a loop back to the start, and a tile deliberately left off the route. An arrow with nothing to lead to is drawn faded.
 
 #### Optional settings
 
