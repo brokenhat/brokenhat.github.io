@@ -223,6 +223,7 @@ Along a path:
 | Zoom | Scroll wheel, `+` `-`, or the buttons | Pinch |
 | See everything | `0` or the ⤢ button | ⤢ button |
 | Open a tile | Click, or Enter | Tap |
+| Close a tile | `Esc`, × or click outside | × or, at the end of it, a quick swipe up (a slow drag springs back unless pulled ~⅓ of the screen) |
 
 Images open full screen: scroll or `+` `-` to zoom, `1` for actual size, `0` to fit, drag to look around, `Esc` to close; on a phone pinch to zoom and swipe down to close. Sketchbooks open as a two-page book (arrow keys or swipe to turn pages); click a page to enlarge it.
 

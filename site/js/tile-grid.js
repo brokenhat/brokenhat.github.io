@@ -602,6 +602,7 @@
     };
     big.addEventListener('click', toLightbox);
     dialog.querySelector('.image-preview-expand').addEventListener('click', toLightbox);
+    swipeUpToClose(dialog);
     show(dialog, dialog.querySelector('.image-preview-window'));
     return dialog;
   }
@@ -819,6 +820,84 @@
     if (focusEl) focusEl.focus({ preventScroll: true });
   }
 
+  /* ── touch: swipe up past the end to close ─────────────────────────── */
+
+  // Once a viewer is scrolled to its end (or has nothing to scroll), a
+  // further upward swipe drags it up; let go fast enough, or far enough,
+  // and it closes, otherwise it springs back.
+  const SWIPE_CLOSE_SPEED = 0.45;   // px/ms upward at release
+  const SWIPE_CLOSE_MIN = 24;       // px dragged, so a tap-flick doesn't count
+  const SWIPE_CLOSE_FAR = 0.3;      // of the screen height: closes at any speed
+
+  function scrollerIn(dialog, target) {
+    for (let el = target; el && el !== dialog.parentNode; el = el.parentElement) {
+      const oy = getComputedStyle(el).overflowY;
+      if ((oy === 'auto' || oy === 'scroll') && el.scrollHeight > el.clientHeight + 1) return el;
+      if (el === dialog) break;
+    }
+    return null;
+  }
+
+  function atEnd(el) {
+    return !el || el.scrollTop + el.clientHeight >= el.scrollHeight - 2;
+  }
+
+  function swipeUpToClose(dialog) {
+    let g = null;
+    const settle = (close) => {
+      const moved = dialog.style.transform !== '';
+      dialog.style.transition = reducedMotion.matches || !moved ? 'none' : 'transform 0.22s ease, opacity 0.22s ease';
+      if (close) {
+        dialog.style.transform = 'translate3d(0, -100vh, 0)';
+        dialog.style.opacity = '0';
+        if (reducedMotion.matches) dialog.close();
+        else setTimeout(() => dialog.close(), 200);
+      } else {
+        dialog.style.transform = '';
+        dialog.style.opacity = '';
+      }
+    };
+    dialog.addEventListener('touchstart', (e) => {
+      if (e.touches.length !== 1) { g = null; return; }
+      const t = e.touches[0];
+      g = { x: t.clientX, y: t.clientY, base: null, scroller: scrollerIn(dialog, e.target), samples: [] };
+    }, { passive: true });
+    dialog.addEventListener('touchmove', (e) => {
+      if (!g || e.touches.length !== 1) return;
+      const t = e.touches[0];
+      if (g.base === null) {
+        const dx = t.clientX - g.x;
+        const dy = t.clientY - g.y;
+        // start once the finger goes up, mostly vertically, with the end reached
+        if (dy > -6 || Math.abs(dy) < Math.abs(dx) || !atEnd(g.scroller)) return;
+        g.base = t.clientY;
+        dialog.style.transition = 'none';
+      }
+      e.preventDefault();
+      const now = performance.now();
+      g.samples.push({ y: t.clientY, t: now });
+      while (g.samples.length > 2 && now - g.samples[0].t > 100) g.samples.shift();
+      const lift = Math.min(0, t.clientY - g.base);
+      dialog.style.transform = 'translate3d(0, ' + lift + 'px, 0)';
+      dialog.style.opacity = String(Math.max(0.4, 1 + lift / (window.innerHeight * 0.8)));
+    }, { passive: false });
+    const end = (e) => {
+      if (!g || e.touches.length) return;
+      const d = g;
+      g = null;
+      if (d.base === null) return;
+      if (e.type === 'touchcancel') { settle(false); return; }
+      const last = d.samples[d.samples.length - 1];
+      const first = d.samples[0];
+      const lift = last ? last.y - d.base : 0;
+      const speed = last && last.t > first.t ? (last.y - first.y) / (last.t - first.t) : 0;
+      settle((speed <= -SWIPE_CLOSE_SPEED && lift <= -SWIPE_CLOSE_MIN) ||
+             lift <= -window.innerHeight * SWIPE_CLOSE_FAR);
+    };
+    dialog.addEventListener('touchend', end, { passive: true });
+    dialog.addEventListener('touchcancel', end, { passive: true });
+  }
+
   function makeDialog(className) {
     const dialog = document.createElement('dialog');
     dialog.className = className;
@@ -843,6 +922,7 @@
     const body = el.querySelector('.grid-cell__text-body');
     dialog.querySelector('.tile-dialog__body').innerHTML = body ? body.innerHTML : '';
     dialog.querySelector('.tile-dialog__close').addEventListener('click', () => dialog.close());
+    swipeUpToClose(dialog);
     show(dialog, dialog.querySelector('.tile-dialog__window'));
     return dialog;
   }
@@ -941,6 +1021,7 @@
     }, { passive: true });
 
     render();
+    swipeUpToClose(dialog);
     show(dialog, dialog.querySelector('.book-viewer'));
     return dialog;
   }
