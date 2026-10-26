@@ -1,4 +1,5 @@
 #lang pollen
+£; generated from content/ by the CMS (cms/sitegen.py), edit it there
 £(define-meta layout "piece")
 £(define-meta title "Bivium tends towards infinity")
 £(define-meta seo-title "Bivium Tends Towards Infinity (2024) — Dominik Zarzycki")
@@ -28,4 +29,5 @@ Other: copper wire (wrapped around wool), lurex.
 £fig["/textiles/bivium-tends-towards-infinity/images/PXL_20250101_131132895.jpg" #:alt "Pink zigzag band being woven at the top of Bivium tends towards infinity"]{}
 £fig["/textiles/bivium-tends-towards-infinity/images/PXL_20250102_044300507.MP.jpg" #:alt "Plant-dyed and hand-spun yarns used in Bivium tends towards infinity"]{}
 }
+
 }

@@ -1,4 +1,5 @@
 #lang pollen
+£; generated from content/ by the CMS (cms/sitegen.py), edit it there
 £(define-meta title "Studio")
 £(define-meta seo-title "Studio & Natural Dyeing — Dominik Zarzycki")
 £(define-meta description "Dominik Zarzycki's weaving studio in Edinburgh: upright loom, spinning wheel, and natural dyeing with weld, mulberry, madder, willow and cochineal.")

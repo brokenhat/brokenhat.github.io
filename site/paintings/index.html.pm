@@ -1,4 +1,5 @@
 #lang pollen
+£; generated from content/ by the CMS (cms/sitegen.py), edit it there
 £(define-meta title "Paintings")
 £(define-meta description "Paintings by Edinburgh-based artist Dominik Zarzycki: landscapes, still lifes of flowers and fruit, interiors and abstract works.")
 

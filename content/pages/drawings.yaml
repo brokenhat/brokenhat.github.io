@@ -1,0 +1,23 @@
+type: gallery
+title: Drawings
+description: 'Drawings by Dominik Zarzycki: ink and graphite works, sketchbook studies, landscapes and abstract compositions, some the basis for larger pieces.'
+groups:
+- images:
+  - file: pic11.png
+    alt: Black ink drawing of dense angular shapes
+  - file: deep_fried_mars-res.jpg
+    alt: Graphite drawing of an exploding cluster of lines
+  - file: pic19.png
+    alt: Ink drawing of a coastal landscape on cream paper
+  - file: B-612.jpg
+    alt: 'B-612: black and white drawing of a dense, textured circular form'
+  - file: abs.jpg
+    alt: Abstract drawing in blue, grey and red angular strokes
+  - file: pic29.png
+    alt: Ink drawing of a townscape in sharp black lines
+  - file: PXL_20240316_103524644.jpg
+    alt: Drawing of a plant in a vase framed by black zigzags
+  - file: resized-slajd17.png
+    alt: Charcoal sketches of trees and reclining figures
+  - file: resized-slajd10.png
+    alt: Monochrome drawings of trees in front of a building

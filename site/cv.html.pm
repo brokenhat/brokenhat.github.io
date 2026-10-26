@@ -1,4 +1,5 @@
 #lang pollen
+£; generated from content/ by the CMS (cms/sitegen.py), edit it there
 £(define-meta title "CV")
 £(define-meta seo-title "CV — Dominik Zarzycki, Textile Artist & Painter")
 £(define-meta description "CV of Dominik Zarzycki, textile artist and painter in Edinburgh: exhibitions at the Royal Scottish Academy and Visual Arts Scotland, awards and education.")

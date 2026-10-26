@@ -1,4 +1,5 @@
 #lang pollen
+£; generated from content/ by the CMS (cms/sitegen.py), edit it there
 £(define-meta layout "piece")
 £(define-meta title "z-flow")
 £(define-meta seo-title "z-flow, Wet-Felted Textile (2025) — Dominik Zarzycki")
@@ -16,4 +17,5 @@
 £gallery{
 £fig["/textiles/z-flow/images/PXL_20250808_081058964.jpg" #:alt "z-flow being wet-felted on the studio table"]{}
 }
+
 }

@@ -1,4 +1,5 @@
 #lang pollen
+£; generated from content/ by the CMS (cms/sitegen.py), edit it there
 £(define-meta layout "piece")
 £(define-meta title "Thawing")
 £(define-meta seo-title "Thawing, Woven Hanging (2025) — Dominik Zarzycki")
@@ -17,4 +18,5 @@ Woven with cotton, sisal, and dock sticks, dipped in strong logwood dye (with ir
 £gallery{
 £fig["/textiles/thawing/images/PXL_20250222_153501222.jpg" #:alt "Detail of Thawing: logwood-dyed grey textures under a pale band"]{}
 }
+
 }

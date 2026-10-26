@@ -1,0 +1,37 @@
+type: cv
+title: CV
+seo_title: CV — Dominik Zarzycki, Textile Artist & Painter
+description: 'CV of Dominik Zarzycki, textile artist and painter in Edinburgh: exhibitions at the Royal Scottish Academy and Visual Arts Scotland, awards and education.'
+intro: |
+  Born in 1996 in Czestochowa, Poland. From 2019 living in Edinburgh.
+sections:
+- heading: Exhibitions
+  entries:
+  - when: 07.09 – 17.09.2026
+    text: Solo exhibition — ["In a Zigzag Way"](/in-a-zigzag-way/), *Out of the Blue — Drill Hall, 36 Dalmeny St, Edinburgh*
+  - when: June 3 – 17, 2026
+    text: '"Why are they flying over the bridge?" — as part of the 16th international biennial of contemporary textile and fibre artist "Scythia", *Ivano-Frankivs''k, Ukraine*'
+  - when: 2025.12 – 2026.01
+    text: '["The rise of the zigzag"](/textiles/the-rise-of-the-zigzag/) — as part of Visual Arts Scotland Biennial Exhibition "The Thread That Pulls", *Royal Scottish Academy, Edinburgh*'
+  - when: '2024.08'
+    text: '["Blue stem"](/textiles/blue-stem/) — as part of the Visual Arts Scotland exhibition "Now and Then", *Dalkeith Palace*'
+  - when: 2024.01 – 2024.02
+    text: '["Sofreh Interlace: Reflections on Persian dining-cloths."](/textiles/sofreh-interlace/) — as part of the RSW 143rd annual show, *Royal Scottish Academy, Edinburgh*'
+  - when: '2023'
+    text: '"When Rannoch Moor Swings" — Royal Scottish Academy, Edinburgh (142nd annual show) by The Royal Scottish Society of Painters in Watercolour (RSW)'
+- heading: Awards
+  entries:
+  - when: '2023'
+    text: Alexander Graham Munro Travel Award for "When Rannoch Moor Swings"
+- heading: Education
+  entries:
+  - when: 2015 – 2017
+    text: University of Arts, Poznan, Poland — Painting BA (interrupted)
+  - when: '2014.09'
+    text: Plein-air event organised by University of Arts from Poznan, for the best students from Polish art schools
+  - when: '2013.11'
+    text: International exchange of students between IASA (יאסא) and Jacek Malczewski art school — Jerusalem, Israel
+  - when: '2013.10'
+    text: Leonardo da Vinci programme, Pforzheim, Germany, focused on 3d design in jewellery — Europass Mobility certificate
+  - when: 2009 – 2015
+    text: Jacek Malczewski School of Art in Czestochowa — finished with diploma in Silversmithing, Jewellery and Painting with honours

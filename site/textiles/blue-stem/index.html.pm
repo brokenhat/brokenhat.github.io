@@ -1,4 +1,5 @@
 #lang pollen
+£; generated from content/ by the CMS (cms/sitegen.py), edit it there
 £(define-meta layout "piece")
 £(define-meta title "Blue Stem")
 £(define-meta seo-title "Blue Stem, Kilim Tapestry (2024) — Dominik Zarzycki")
@@ -25,4 +26,5 @@ This one is especially inspired by mazandaran and jajim kilims from northern Ira
 £fig["/textiles/blue-stem/images/PXL_20240219_1758503232.jpg" #:alt "Detail of Blue Stem: red and striped strips joined with a blue stitch"]{}
 £fig["/textiles/blue-stem/images/PXL_20240812_115323987_1.jpg" #:alt "Blue Stem hanging, folded over at the top"]{}
 }
+
 }

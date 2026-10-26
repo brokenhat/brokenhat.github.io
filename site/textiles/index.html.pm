@@ -1,4 +1,5 @@
 #lang pollen
+£; generated from content/ by the CMS (cms/sitegen.py), edit it there
 £(define-meta title "Textiles")
 £(define-meta seo-title "Textiles & Tapestries — Dominik Zarzycki")
 £(define-meta description "Tapestries and textiles by Dominik Zarzycki: handwoven and wet-felted works in handspun, naturally dyed wool, each with photos from the loom.")

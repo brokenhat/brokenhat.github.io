@@ -1,4 +1,5 @@
 #lang pollen
+£; generated from content/ by the CMS (cms/sitegen.py), edit it there
 £(define-meta layout "piece")
 £(define-meta title "Untitled, 2024")
 £(define-meta seo-title "Untitled, Interwoven-Warp Tapestry (2024) — Dominik Zarzycki")
@@ -20,4 +21,5 @@
 £fig["/textiles/untitled-2024/images/PXL_20240228_150243480.jpg" #:alt "Untitled 2024, early stage of the interwoven warps"]{}
 £fig["/textiles/untitled-2024/images/PXL_20240227_184821884.MP.jpg" #:alt "Untitled 2024, the first rows on the stretcher"]{}
 }
+
 }

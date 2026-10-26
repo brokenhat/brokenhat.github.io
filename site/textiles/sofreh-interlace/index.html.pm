@@ -1,4 +1,5 @@
 #lang pollen
+£; generated from content/ by the CMS (cms/sitegen.py), edit it there
 £(define-meta layout "piece")
 £(define-meta title "Sofreh Interlace")
 £(define-meta seo-title "Sofreh Interlace, Tapestry (2023) — Dominik Zarzycki")
@@ -21,4 +22,5 @@ The end piece of the project created with the help of RSW in Edinburgh.
 }
 
 £git-timeline["textiles/sofreh-interlace"]
+
 }

@@ -1,4 +1,5 @@
 #lang pollen
+£; generated from content/ by the CMS (cms/sitegen.py), edit it there
 £(define-meta layout "piece")
 £(define-meta title "In a Zigzag Way")
 £(define-meta seo-title "In a Zigzag Way — Solo Exhibition by Dominik Zarzycki")

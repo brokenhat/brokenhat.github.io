@@ -1,4 +1,5 @@
 #lang pollen
+£; generated from content/ by the CMS (cms/sitegen.py), edit it there
 £(define-meta title "Generative")
 £(define-meta seo-title "Generative Art in Clojure & Quil — Dominik Zarzycki")
 £(define-meta description "Generative art by Dominik Zarzycki, made with Clojure and the Quil library: algorithmic drawings, noise fields and an animation.")

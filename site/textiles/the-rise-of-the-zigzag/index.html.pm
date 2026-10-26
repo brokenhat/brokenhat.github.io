@@ -1,4 +1,5 @@
 #lang pollen
+£; generated from content/ by the CMS (cms/sitegen.py), edit it there
 £(define-meta layout "piece")
 £(define-meta title "The rise of the zigzag")
 £(define-meta seo-title "The Rise of the Zigzag, Tapestry (2025) — Dominik Zarzycki")
@@ -19,4 +20,5 @@ Woven using only handspun & naturally dyed wool (Teeswater & Icelandic).
 £gallery{
 £fig["/textiles/the-rise-of-the-zigzag/images/PXL_20250402_003431402.jpg" #:alt "The rise of the zigzag on the loom, pink zigzags half woven"]{}
 }
+
 }

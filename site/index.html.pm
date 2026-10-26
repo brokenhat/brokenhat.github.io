@@ -1,4 +1,5 @@
 #lang pollen
+£; generated from content/ by the CMS (cms/sitegen.py), edit it there
 £(define-meta title "Dominik Zarzycki")
 £(define-meta seo-title "Dominik Zarzycki — Textile Artist & Painter, Edinburgh")
 £(define-meta description "Dominik Zarzycki, textile artist and painter in Edinburgh: handwoven tapestries in handspun, naturally dyed wool, paintings, drawings and generative art.")
