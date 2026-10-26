@@ -5,7 +5,7 @@
   <div class="entry">
     <span class="handle" aria-hidden="true">⠿</span>
     <input name="s{{ si }}-when" value="{{ e.get('when', '') }}" placeholder="2026 or 07.09 – 17.09.2026" class="when">
-    <input name="s{{ si }}-text" value="{{ e.get('text', '') }}" placeholder="What, *where* — [link](/textiles/…/) optional" class="grow">
+    <textarea name="s{{ si }}-text" rows="2" placeholder="What, *where* — [link](/textiles/…/) optional" class="grow">{{ e.get('text', '') }}</textarea>
     <button type="button" class="small" data-remove-entry title="Remove">✕</button>
   </div>
 {% endmacro %}

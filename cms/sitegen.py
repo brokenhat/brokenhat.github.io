@@ -21,10 +21,8 @@ from pathlib import Path
 
 import yaml
 
-ROOT = Path(__file__).resolve().parent.parent
-CONTENT = ROOT / "content"
-SITE = ROOT / "site"
-MANIFEST = SITE / ".generated"
+# the repository to work on: this one, unless the CMS says otherwise
+DEFAULT_ROOT = Path(__file__).resolve().parent.parent
 HEADER = "£; generated from content/ by the CMS (cms/sitegen.py), edit it there\n"
 
 
@@ -227,20 +225,21 @@ def load(path: Path) -> dict:
         return yaml.safe_load(f) or {}
 
 
-def build() -> dict[str, str]:
+def build(root: Path = DEFAULT_ROOT) -> dict[str, str]:
     """{site-relative path: file text} for every generated file."""
+    content = root / "content"
     files: dict[str, str] = {}
-    site = load(CONTENT / "site.yaml")
-    files["index.html.pm"] = home(load(CONTENT / "home.yaml"))
+    site = load(content / "site.yaml")
+    files["index.html.pm"] = home(load(content / "home.yaml"))
     tree = ["index.html"]
     for slug in site.get("menu", []):
-        d = load(CONTENT / "pages" / f"{slug}.yaml")
+        d = load(content / "pages" / f"{slug}.yaml")
         kind = d.get("type")
         if kind == "exhibition":
             files[f"{slug}/index.html.pm"] = exhibition(slug, d)
             tree.append(f"{slug}/index.html")
         elif kind == "works":
-            pieces = {p: load(CONTENT / slug / f"{p}.yaml") for p in d.get("pieces", [])}
+            pieces = {p: load(content / slug / f"{p}.yaml") for p in d.get("pieces", [])}
             files[f"{slug}/index.html.pm"] = works(slug, d, pieces)
             tree.append(f"{slug}/index.html")
             for p, pd in pieces.items():
@@ -259,22 +258,24 @@ def build() -> dict[str, str]:
     return files
 
 
-def write(files: dict[str, str]) -> list[str]:
+def write(files: dict[str, str], root: Path = DEFAULT_ROOT) -> list[str]:
     """Write changed files, remove ones no longer generated. Returns what changed."""
-    old = set(MANIFEST.read_text().split()) if MANIFEST.exists() else set()
+    site = root / "site"
+    manifest = site / ".generated"
+    old = set(manifest.read_text().split()) if manifest.exists() else set()
     changed = []
     for rel, body in files.items():
-        p = SITE / rel
+        p = site / rel
         if not p.exists() or p.read_text(encoding="utf-8") != body:
             p.parent.mkdir(parents=True, exist_ok=True)
             p.write_text(body, encoding="utf-8")
             changed.append(rel)
     for rel in sorted(old - set(files)):
-        p = SITE / rel
+        p = site / rel
         if p.exists() and p.read_text(encoding="utf-8").startswith("#lang pollen\n" + HEADER):
             p.unlink()
             changed.append(f"(removed) {rel}")
-    MANIFEST.write_text("\n".join(sorted(files)) + "\n")
+    manifest.write_text("\n".join(sorted(files)) + "\n")
     return changed
 
 

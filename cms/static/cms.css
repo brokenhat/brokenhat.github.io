@@ -225,7 +225,9 @@ button.link { border: 0; background: none; padding: 0.45rem 0; color: var(--mute
 .piece-list a { font-weight: 600; text-decoration: none; }
 
 .entry { display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.4rem; }
-.entry input { margin: 0; }
+.entry input, .entry textarea { margin: 0; }
+.entry { align-items: flex-start; }
+.entry .handle { padding-top: 0.6rem; }
 .entry .when { flex: 0 0 11rem; }
 
 /* ─── dashboard ────────────────────────────────────────────────────── */
@@ -270,3 +272,5 @@ table.history { width: 100%; border-collapse: collapse; background: var(--card);
   main.with-side { margin-left: 0; }
   main { padding: 1.25rem; }
 }
+
+.card > h2:first-child { margin-top: 0; }

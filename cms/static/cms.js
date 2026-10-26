@@ -131,7 +131,7 @@
       } else if (t.closest('[data-add-entry]')) {
         const section = t.closest('[data-section]');
         const tpl = form.querySelector('[data-entry-template]');
-        add(section.querySelector('.entries'), tpl, section.dataset.section).querySelector('input').focus();
+        add(section.querySelector('.entries'), tpl, section.dataset.section).querySelector('input, textarea').focus();
       } else if (t.closest('[data-add-section]')) {
         addNumbered(form, 'sections', '[data-sections]', '[data-section-template]');
       } else if (t.closest('[data-add-group]')) {

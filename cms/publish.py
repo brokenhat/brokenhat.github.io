@@ -12,6 +12,7 @@
 
 from __future__ import annotations
 
+import logging
 import os
 import shutil
 import subprocess
@@ -21,6 +22,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from . import config, sitegen
+
+log = logging.getLogger("cms.publish")
 
 KEEP_RELEASES = 5
 TRACKED = ["content", "site"]        # what the CMS commits
@@ -38,16 +41,23 @@ def run(cmd: list[str], cwd: Path, env: dict | None = None, timeout: int = 900) 
     return p.stdout
 
 
+_git_lock = threading.Lock()
+
+
 def git(*args: str, cwd: Path | None = None) -> str:
+    """One git command at a time (the dashboard checks for changes while
+    a publish commits); reads never take git's index lock."""
     name, _, email = config.AUTHOR.partition(" <")
-    return run(["git", "-c", f"user.name={name}", "-c", f"user.email={email.rstrip('>')}", *args],
-               cwd or config.REPO)
+    with _git_lock:
+        return run(["git", "--no-optional-locks", "-c", f"user.name={name}",
+                    "-c", f"user.email={email.rstrip('>')}", *args],
+                   cwd or config.REPO)
 
 
 # ─── after a save ────────────────────────────────────────────────────────
 
 def regenerate() -> list[str]:
-    return sitegen.write(sitegen.build())
+    return sitegen.write(sitegen.build(config.REPO), config.REPO)
 
 
 def unpublished() -> list[str]:
@@ -72,8 +82,11 @@ def render_preview() -> None:
     with _preview_lock:
         regenerate()
         env = {"SITE_CLEAN_URLS": "0"}
-        run([config.RACO, "pollen", "render", "-r", "."], config.SITE, env)
-        run([config.RACO, "pollen", "render", "404.html.pm"], config.SITE, env)
+        try:
+            _render(config.SITE, env)
+        except PublishError:
+            run([config.RACO, "pollen", "reset"], config.SITE, env)
+            _render(config.SITE, env)
 
 
 # ─── publish (in the background; the page polls the status) ──────────────
@@ -122,6 +135,7 @@ def _publish(note: str) -> None:
         commit = commit_changes(note or "Update from the CMS")
         _release(commit)
     except Exception as e:  # shown in the admin; the live site is untouched
+        log.exception("publish failed")
         job.state, job.message = "failed", str(e)
 
 
@@ -140,6 +154,7 @@ def _undo(commit: str) -> None:
             git("revert", "--abort")
         except PublishError:
             pass
+        log.exception("undo failed")
         job.state, job.message = "failed", str(e)
 
 
@@ -154,8 +169,14 @@ def _release(commit: str) -> None:
     _set("Building the site")
     build_site = _checkout(commit)
     env = {"SITE_CLEAN_URLS": "1"}
-    run([config.RACO, "pollen", "render", "-r", "."], build_site, env)
-    run([config.RACO, "pollen", "render", "404.html.pm"], build_site, env)
+    try:
+        _render(build_site, env)
+    except PublishError:
+        # Pollen's cache can trip over pages that changed since the last
+        # build: start it afresh once (resized images are kept)
+        _set("Building the site (from scratch)")
+        run([config.RACO, "pollen", "reset"], build_site, env)
+        _render(build_site, env)
 
     _set("Putting it online")
     releases = config.WWW / "releases"
@@ -166,6 +187,11 @@ def _release(commit: str) -> None:
     _prune(releases)
     job.state, job.step = "done", "Published"
     job.message = f"Live: {target.name}"
+
+
+def _render(site: Path, env: dict) -> None:
+    run([config.RACO, "pollen", "render", "-r", "."], site, env)
+    run([config.RACO, "pollen", "render", "404.html.pm"], site, env)
 
 
 def _checkout(commit: str) -> Path:
@@ -189,6 +215,8 @@ def _collect(src: Path, dst: Path) -> None:
     extra disk space; the build replaces files, it never edits them)."""
     def put(f: Path) -> None:
         out = dst / f.relative_to(src)
+        if out.exists():
+            return
         out.parent.mkdir(parents=True, exist_ok=True)
         try:
             os.link(f, out)

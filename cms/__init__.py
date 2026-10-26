@@ -10,13 +10,7 @@ from __future__ import annotations
 import logging
 from datetime import timedelta
 
-from flask import Flask, redirect
-from flask_wtf.csrf import CSRFProtect
-from werkzeug.middleware.proxy_fix import ProxyFix
-
-from . import config
-
-csrf = CSRFProtect()
+# Flask is imported inside create_app, so cms.sitegen runs without it
 
 # only the admin's own files; no inline scripts, nothing from elsewhere
 CSP = ("default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; "
@@ -28,7 +22,13 @@ PREVIEW_CSP = ("default-src 'self'; img-src 'self' data:; frame-src https://www.
                "frame-ancestors 'none'; base-uri 'none'; object-src 'none'")
 
 
-def create_app() -> Flask:
+def create_app():
+    from flask import Flask, redirect
+    from flask_wtf.csrf import CSRFProtect
+    from werkzeug.middleware.proxy_fix import ProxyFix
+
+    from . import config
+
     app = Flask(__name__, static_url_path="/admin/static")
     app.config.update(
         SECRET_KEY=config.secret_key(),
@@ -43,7 +43,7 @@ def create_app() -> Flask:
     )
     # behind nginx: the real visitor address (rate limits, fail2ban)
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
-    csrf.init_app(app)
+    CSRFProtect(app)
 
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s")
 
