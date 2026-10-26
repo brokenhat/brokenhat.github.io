@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% from "_macros.html" import field, textarea, text_help, seo, actions, image_list %}
+{% block title %}{{ p.title }}{% endblock %}
+{% block body %}
+<h1>{{ p.title }} <span class="kind">gallery</span></h1>
+<form method="post" class="editor" data-editor>
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  {{ field('title', 'Page title', d.get('title'), attrs='required') }}
+  {{ textarea('intro', 'Text above the pictures', d.get('intro'), 'optional', rows=6) }}
+  {{ text_help() }}
+
+  <input type="hidden" name="groups" value="{{ d.get('groups', [])|length or 1 }}" data-count-of="groups">
+  <div data-groups>
+    {% for g in d.get('groups', []) or [{'images': []}] %}
+      <fieldset class="group">
+        <legend>Pictures{% if loop.length > 1 %} · group {{ loop.index }}{% endif %}</legend>
+        {{ field('g' ~ loop.index0 ~ '-heading', 'Heading above this group', g.get('heading'), 'optional, e.g. natural dyeing') }}
+        {{ image_list('g' ~ loop.index0, g.get('images', []), 'page:' ~ p.slug, p.image_url, captions=True) }}
+      </fieldset>
+    {% endfor %}
+  </div>
+  <template data-group-template>
+    <fieldset class="group">
+      <legend>Pictures · new group</legend>
+      {{ field('g__N__-heading', 'Heading above this group', '', 'optional') }}
+      {{ image_list('g__N__', [], 'page:' ~ p.slug, p.image_url, captions=True) }}
+    </fieldset>
+  </template>
+  <button type="button" data-add-group>Add a group with its own heading</button>
+
+  {{ seo(d, d.get('title', '')) }}
+  {{ actions(p.url) }}
+</form>
+{% endblock %}

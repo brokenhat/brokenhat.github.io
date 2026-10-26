@@ -1,0 +1,43 @@
+{% macro field(name, label, value, hint='', type='text', attrs='') %}
+  <label>{{ label }}{% if hint %} <span class="hint">{{ hint }}</span>{% endif %}
+    <input type="{{ type }}" name="{{ name }}" value="{{ value or '' }}" {{ attrs|safe }}></label>
+{% endmacro %}
+
+{% macro textarea(name, label, value, hint='', rows=8) %}
+  <label>{{ label }}{% if hint %} <span class="hint">{{ hint }}</span>{% endif %}
+    <textarea name="{{ name }}" rows="{{ rows }}">{{ value or '' }}</textarea></label>
+{% endmacro %}
+
+{% macro text_help() %}
+  <p class="hint">A blank line starts a new paragraph. <code>**bold**</code>, <code>*italic*</code>,
+     <code>[link text](/textiles/thawing/)</code> or <code>[text](https://…)</code>.</p>
+{% endmacro %}
+
+{# images of one owner ("page:studio", "piece:textiles/thawing"); max=1 for a single picture #}
+{% macro image_list(prefix, images, owner, url, captions=False, max=0, label='Photos') %}
+  <div class="images" data-prefix="{{ prefix }}" data-owner="{{ owner }}" data-captions="{{ 1 if captions else 0 }}" data-max="{{ max }}">
+    <div class="img-list" data-sortable>
+      {% for img in images %}{% include "_image_card.html" %}{% endfor %}
+    </div>
+    <label class="drop">
+      <input type="file" accept="image/*" {{ 'multiple' if max != 1 }} data-upload>
+      <span>{{ 'Drop a photo here, or click to choose' if max == 1 else 'Drop photos here, or click to choose' }}
+        <span class="hint">big phone photos are fine: they're resized and their location data removed</span></span>
+    </label>
+  </div>
+{% endmacro %}
+
+{% macro seo(d, default_title) %}
+  <fieldset class="seo">
+    <legend>In Google</legend>
+    {{ field('seo_title', 'Search title', d.get('seo_title'), 'leave empty for "' ~ default_title ~ ' — Dominik Zarzycki"', attrs='data-count="60"') }}
+    {{ textarea('description', 'Search description', d.get('description'), 'one or two sentences about the page; about 150 characters', rows=3) }}
+  </fieldset>
+{% endmacro %}
+
+{% macro actions(preview_url) %}
+  <div class="actions">
+    <button type="submit" class="primary">Save</button>
+    <button type="button" data-preview="{{ preview_url }}">Save &amp; preview</button>
+  </div>
+{% endmacro %}

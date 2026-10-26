@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% from "_macros.html" import field, textarea, text_help, seo, actions %}
+{% block title %}{{ p.title }}{% endblock %}
+{% block body %}
+<h1>{{ p.title }}</h1>
+
+<form method="post" action="{{ url_for('main.new_piece', slug=p.slug) }}" class="card row">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <input name="title" placeholder="Title of a new piece" required class="grow">
+  <button type="submit" class="primary">New piece</button>
+</form>
+
+<form method="post" class="editor" data-editor>
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <h2>Pieces <span class="hint">in the order they appear (drag to change it); click one to edit</span></h2>
+  <ol class="piece-list" data-sortable>
+    {% for pc in pieces %}
+      <li>
+        <span class="handle" aria-hidden="true">⠿</span>
+        <input type="hidden" name="piece" value="{{ pc.slug }}">
+        {% if pc.data.get('image') %}<img src="{{ url_for('main.img', site_path=(pc.image_url + '/' + pc.data.image.file)[1:]) }}" alt="">{% else %}<span class="noimg">no photo</span>{% endif %}
+        <a href="{{ url_for('main.piece', slug=p.slug, piece_slug=pc.slug) }}">{{ pc.title }}</a>
+        <span class="muted">{{ pc.data.get('year', '') }}</span>
+      </li>
+    {% endfor %}
+  </ol>
+  {{ field('title', 'Page title', d.get('title'), attrs='required') }}
+  {{ textarea('intro', 'Text above the pieces', d.get('intro'), 'optional', rows=4) }}
+  {{ seo(d, d.get('title', '')) }}
+  {{ actions(p.url) }}
+</form>
+{% endblock %}

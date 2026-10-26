@@ -1,0 +1,16 @@
+<div class="img-card">
+  <span class="handle" title="Drag to reorder" aria-hidden="true">⠿</span>
+  <img src="{{ url_for('main.img', site_path=(url + '/' + img.file)[1:]) }}" alt="" loading="lazy">
+  <input type="hidden" name="{{ prefix }}-file" value="{{ img.file }}">
+  <label>Description <span class="hint">what's in the picture, for Google and blind visitors</span>
+    <textarea name="{{ prefix }}-alt" rows="2" data-alt>{{ img.alt }}</textarea></label>
+  {% if captions %}
+  <label>Caption <span class="hint">shown under it (optional)</span>
+    <input name="{{ prefix }}-caption" value="{{ img.get('caption', '') }}"></label>
+  {% else %}
+    <input type="hidden" name="{{ prefix }}-caption" value="{{ img.get('caption', '') }}">
+  {% endif %}
+  <div class="card-actions">
+    <button type="button" class="small" data-remove>Remove</button>
+  </div>
+</div>

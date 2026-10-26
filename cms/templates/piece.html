@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% from "_macros.html" import field, textarea, text_help, seo, actions, image_list %}
+{% block title %}{{ pc.title }}{% endblock %}
+{% block body %}
+<p class="crumbs"><a href="{{ url_for('main.page', slug=section.slug) }}">{{ section.title }}</a> ›</p>
+<h1>{{ pc.title }}</h1>
+<form method="post" class="editor" data-editor>
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  {{ field('title', 'Title', d.get('title'), attrs='required') }}
+  <details {{ 'open' if d.get('full_title') or d.get('card_title') }}>
+    <summary>Longer or shorter title</summary>
+    {{ field('full_title', 'Full title on its page', d.get('full_title'), 'e.g. Sofreh Interlace: Reflections on persian dining-cloths') }}
+    {{ field('card_title', 'Title on the index', d.get('card_title'), 'if different, e.g. Untitled') }}
+  </details>
+
+  <h2>Main photo</h2>
+  {{ image_list('image', [d.image] if d.get('image') else [], 'piece:' ~ section.slug ~ '/' ~ pc.slug, pc.image_url, max=1) }}
+
+  <h2>Details</h2>
+  <div class="grid2">
+    {% for name, label, hint in fields %}{{ field(name, label, d.get(name), hint) }}{% endfor %}
+  </div>
+
+  {{ textarea('text', 'About the piece', d.get('text'), rows=10) }}
+  {{ text_help() }}
+
+  <h2>Process &amp; details photos</h2>
+  {{ image_list('details', d.get('details', []), 'piece:' ~ section.slug ~ '/' ~ pc.slug, pc.image_url, captions=True) }}
+
+  <label class="check"><input type="checkbox" name="journal" {{ 'checked' if d.get('journal') }}>
+    Show the process journal (from git commits) on this page</label>
+
+  {{ seo(d, d.get('title', '')) }}
+  {{ actions(pc.url) }}
+</form>
+
+<form method="post" action="{{ url_for('main.delete_piece', slug=section.slug, piece_slug=pc.slug) }}" class="danger" data-confirm="Delete “{{ pc.title }}”? It disappears from the site when you publish (and can be undone in History).">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <button type="submit" class="small bad">Delete this piece</button>
+</form>
+{% endblock %}

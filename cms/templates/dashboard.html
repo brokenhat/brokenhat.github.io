@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block body %}
+<h1>Your site</h1>
+
+<section class="publish card">
+  {% include "_publish_status.html" %}
+  {% if pending %}
+    <p><strong>{{ pending|length }} change{{ 's' if pending|length != 1 }}</strong> not online yet.</p>
+    <form method="post" action="{{ url_for('main.start_publish') }}" class="row">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input name="note" placeholder="What changed? (optional, for the history)" class="grow">
+      <button type="submit" class="primary" {{ 'disabled' if job.state == 'running' }}>Publish</button>
+    </form>
+  {% else %}
+    <p class="muted">Everything is published.</p>
+  {% endif %}
+</section>
+
+<section class="tiles">
+  <a class="tile" href="{{ url_for('main.home') }}"><strong>Home page</strong><span>Statement, English &amp; Polish</span></a>
+  {% for p in pages %}
+    <a class="tile" href="{{ url_for('main.page', slug=p.slug) }}">
+      <strong>{{ p.title }}</strong>
+      <span>{% if p.type == 'works' %}{{ p.data.get('pieces', [])|length }} pieces
+            {% elif p.type == 'gallery' %}{{ p.data.get('groups', [])|sum(attribute='images', start=[])|length }} images
+            {% elif p.type == 'exhibition' %}Exhibition{% if p.data.get('start') %} · {{ p.data.start }}{% endif %}
+            {% else %}{{ p.data.get('sections', [])|sum(attribute='entries', start=[])|length }} entries{% endif %}</span>
+    </a>
+  {% endfor %}
+</section>
+
+<section class="card">
+  <h2>Needs attention</h2>
+  {% if issues %}
+    <ul class="issues">
+      {% for i in issues %}<li><a href="{{ i.link }}">{{ i.where }}</a>: {{ i.text }}</li>{% endfor %}
+    </ul>
+  {% else %}
+    <p class="muted">Nothing: every page has a search description and every image a description.</p>
+  {% endif %}
+</section>
+{% endblock %}

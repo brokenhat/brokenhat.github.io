@@ -1,0 +1,11 @@
+<div id="publish-status"
+     {% if job.state == 'running' %}hx-get="{{ url_for('main.publish_status') }}" hx-trigger="every 2s" hx-swap="outerHTML"{% endif %}>
+  {% if job.state == 'running' %}
+    <p class="status running"><span class="spinner"></span> {{ job.step }}… <span class="muted">(this takes about a minute)</span></p>
+  {% elif job.state == 'done' %}
+    <p class="status ok">✓ Published. <a href="/" target="_blank" rel="noopener">See the site ↗</a></p>
+  {% elif job.state == 'failed' %}
+    <div class="status bad"><p>Publishing didn't work, and the site online is unchanged.</p>
+      <details><summary>Details</summary><pre>{{ job.message }}</pre></details></div>
+  {% endif %}
+</div>

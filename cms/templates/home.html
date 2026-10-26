@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% from "_macros.html" import field, textarea, text_help, seo, actions %}
+{% block title %}Home page{% endblock %}
+{% block body %}
+<h1>Home page</h1>
+<form method="post" class="editor" data-editor>
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <input type="hidden" name="title" value="{{ d.get('title', 'Dominik Zarzycki') }}">
+  {{ field('heading', 'Main heading', d.get('heading'), 'not shown on the page; read by Google and screen readers') }}
+  {{ textarea('text', 'Statement (English)', d.get('text'), rows=18) }}
+  {{ text_help() }}
+  {{ field('heading_pl', 'Heading above the Polish text', d.get('heading_pl') or 'Po polsku') }}
+  {{ textarea('text_pl', 'Statement (Polish)', d.get('text_pl'), rows=18) }}
+  {{ seo(d, 'Dominik Zarzycki') }}
+  {{ actions('/') }}
+</form>
+{% endblock %}

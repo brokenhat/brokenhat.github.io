@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% from "_macros.html" import field, textarea, text_help, seo, actions %}
+{% block title %}CV{% endblock %}
+{% macro entry(si, e) %}
+  <div class="entry">
+    <span class="handle" aria-hidden="true">⠿</span>
+    <input name="s{{ si }}-when" value="{{ e.get('when', '') }}" placeholder="2026 or 07.09 – 17.09.2026" class="when">
+    <input name="s{{ si }}-text" value="{{ e.get('text', '') }}" placeholder="What, *where* — [link](/textiles/…/) optional" class="grow">
+    <button type="button" class="small" data-remove-entry title="Remove">✕</button>
+  </div>
+{% endmacro %}
+{% block body %}
+<h1>CV</h1>
+<form method="post" class="editor" data-editor>
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  {{ field('title', 'Page title', d.get('title'), attrs='required') }}
+  {{ textarea('intro', 'Opening line', d.get('intro'), rows=2) }}
+  <input type="hidden" name="sections" value="{{ d.get('sections', [])|length }}" data-count-of="sections">
+  <div data-sections>
+    {% for s in d.get('sections', []) %}
+      {% set si = loop.index0 %}
+      <fieldset class="group" data-section="{{ si }}">
+        <legend>{{ s.heading or 'Section' }}</legend>
+        {{ field('s' ~ si ~ '-heading', 'Heading', s.heading) }}
+        <div class="entries" data-sortable>
+          {% for e in s.get('entries', []) %}{{ entry(si, e) }}{% endfor %}
+        </div>
+        <button type="button" class="small" data-add-entry>Add a line</button>
+      </fieldset>
+    {% endfor %}
+  </div>
+  <template data-entry-template>{{ entry('__N__', {}) }}</template>
+  <template data-section-template>
+    <fieldset class="group" data-section="__N__">
+      <legend>New section</legend>
+      {{ field('s__N__-heading', 'Heading', '', 'e.g. Residencies') }}
+      <div class="entries" data-sortable></div>
+      <button type="button" class="small" data-add-entry>Add a line</button>
+    </fieldset>
+  </template>
+  <button type="button" data-add-section>Add a section</button>
+  <p class="hint">Text: <code>*italic*</code> for venues, <code>[title](/textiles/blue-stem/)</code> to link to a piece. Lines appear in the order shown here (drag to change it).</p>
+  {{ seo(d, d.get('title', '')) }}
+  {{ actions(p.url) }}
+</form>
+{% endblock %}

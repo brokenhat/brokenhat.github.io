@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% from "_macros.html" import field, textarea, text_help, seo, actions, image_list %}
+{% block title %}{{ p.title }}{% endblock %}
+{% block body %}
+<h1>{{ p.title }} <span class="kind">exhibition</span></h1>
+<form method="post" class="editor" data-editor>
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  {{ field('title', 'Title', d.get('title'), attrs='required') }}
+  {{ field('subtitle', 'Line under the title', d.get('subtitle'), 'e.g. solo exhibition, Out of the Blue Drill Hall, Edinburgh') }}
+  <h2>Poster or main picture</h2>
+  {{ image_list('image', [d.image] if d.get('image') else [], 'page:' ~ p.slug, p.image_url, max=1) }}
+  <h2>When and where</h2>
+  <p class="hint">Google uses these to show the exhibition as an event.</p>
+  <div class="grid2">
+    {{ field('start', 'Opens', d.get('start'), type='date') }}
+    {{ field('end', 'Closes', d.get('end'), type='date') }}
+    {{ field('venue', 'Venue', d.get('venue')) }}
+    {{ field('street', 'Street', d.get('street')) }}
+    {{ field('locality', 'Town', d.get('locality')) }}
+    {{ field('postcode', 'Postcode', d.get('postcode')) }}
+    {{ field('country', 'Country code', d.get('country') or 'GB', 'GB, PL, …') }}
+  </div>
+  {{ textarea('text', 'Text', d.get('text'), 'statement, opening times, anything else', rows=22) }}
+  {{ text_help() }}
+  {{ seo(d, d.get('title', '')) }}
+  {{ actions(p.url) }}
+</form>
+{% endblock %}

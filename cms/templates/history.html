@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}History{% endblock %}
+{% block body %}
+<h1>History</h1>
+<section class="card">{% include "_publish_status.html" %}
+  <p class="hint">Every publish, newest first. Undo takes a change back out and publishes the result{% if pending %} (publish your unsaved changes first){% endif %}.</p>
+</section>
+<table class="history">
+  <thead><tr><th>When</th><th>What</th><th></th></tr></thead>
+  <tbody>
+  {% for c in changes %}
+    <tr>
+      <td class="muted">{{ c.date }}</td>
+      <td>{{ c.note }}</td>
+      <td>
+        <form method="post" action="{{ url_for('main.undo', commit=c.commit) }}" data-confirm="Undo “{{ c.note }}” and publish?">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="small" {{ 'disabled' if pending or job.state == 'running' }}>Undo</button>
+        </form>
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
