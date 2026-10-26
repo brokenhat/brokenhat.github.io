@@ -12,6 +12,8 @@
 
 from __future__ import annotations
 
+import contextlib
+import fcntl
 import logging
 import os
 import shutil
@@ -128,12 +130,35 @@ def _set(step: str) -> None:
     job.log.append(f"{time.strftime('%H:%M:%S')} {step}")
 
 
+@contextlib.contextmanager
+def build_lock():
+    """One build at a time, also across processes (a code update arriving
+    by git push runs `cms.manage update` next to the web app)."""
+    config.INSTANCE.mkdir(parents=True, exist_ok=True, mode=0o700)
+    with open(config.INSTANCE / "build.lock", "w") as f:
+        fcntl.flock(f, fcntl.LOCK_EX)
+        try:
+            yield
+        finally:
+            fcntl.flock(f, fcntl.LOCK_UN)
+
+
+def sync() -> None:
+    """Bring in code pushed to the origin, send our commits back."""
+    if not config.PUSH:
+        return
+    git("pull", "-q", "--rebase", "--autostash", "origin", "main")
+    git("push", "-q", "origin", "HEAD:main")
+
+
 def _publish(note: str) -> None:
     try:
-        _set("Saving the changes")
-        regenerate()
-        commit = commit_changes(note or "Update from the CMS")
-        _release(commit)
+        with build_lock():
+            _set("Saving the changes")
+            regenerate()
+            commit_changes(note or "Update from the CMS")
+            sync()
+            _release(git("rev-parse", "HEAD").strip())
     except Exception as e:  # shown in the admin; the live site is untouched
         log.exception("publish failed")
         job.state, job.message = "failed", str(e)
@@ -141,14 +166,16 @@ def _publish(note: str) -> None:
 
 def _undo(commit: str) -> None:
     try:
-        _set("Undoing the change")
-        if unpublished():
-            raise PublishError("Publish or discard the unsaved changes first.")
-        git("revert", "--no-edit", commit)
-        regenerate()
-        if unpublished():   # regenerated pages of the reverted content
-            commit_changes("Regenerate pages")
-        _release(git("rev-parse", "HEAD").strip())
+        with build_lock():
+            _set("Undoing the change")
+            if unpublished():
+                raise PublishError("Publish or discard the unsaved changes first.")
+            git("revert", "--no-edit", commit)
+            regenerate()
+            if unpublished():   # regenerated pages of the reverted content
+                commit_changes("Regenerate pages")
+            sync()
+            _release(git("rev-parse", "HEAD").strip())
     except Exception as e:
         try:
             git("revert", "--abort")
@@ -256,6 +283,19 @@ def _prune(releases: Path) -> None:
     for p in old[:-KEEP_RELEASES]:
         if p.resolve() != current:
             shutil.rmtree(p)
+
+
+def update_from_origin() -> str:
+    """After code was pushed to the origin: take it in and rebuild the
+    live site (run by the repository's post-receive hook)."""
+    with build_lock():
+        git("pull", "-q", "--rebase", "--autostash", "origin", "main")
+        if regenerate():
+            commit_changes("Regenerate pages")
+            if config.PUSH:
+                git("push", "-q", "origin", "HEAD:main")
+        _release(git("rev-parse", "HEAD").strip())
+        return job.message
 
 
 # ─── history ─────────────────────────────────────────────────────────────

@@ -1,0 +1,11 @@
+#!/bin/sh
+# /srv/dominik-art/bin/update [update|build|init|password|2fa]
+# Runs the CMS's command line as the dominikart user, with the server's
+# paths (no secrets needed). update: take in pushed code, rebuild.
+set -e
+cd /srv/dominik-art/repo
+export HOME=/srv/dominik-art PATH=/opt/racket-9.3/bin:/usr/bin:/bin
+export CMS_REPO=/srv/dominik-art/repo CMS_INSTANCE=/srv/dominik-art/instance
+export CMS_BUILD=/srv/dominik-art/build CMS_WWW=/srv/dominik-art/www
+export CMS_RACO=/opt/racket-9.3/bin/raco CMS_PUSH=1
+exec /srv/dominik-art/venv/bin/python -m cms.manage "${1:-update}"

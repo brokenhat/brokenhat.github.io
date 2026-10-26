@@ -3,6 +3,8 @@
     python -m cms.manage init         # username, password, 2FA (once)
     python -m cms.manage password     # change the password
     python -m cms.manage 2fa          # connect a new authenticator app
+    python -m cms.manage update       # pull pushed code and rebuild the site
+    python -m cms.manage build        # rebuild the live site from what's committed
 """
 
 from __future__ import annotations
@@ -74,6 +76,14 @@ def main(argv: list[str]) -> None:
         admin.pop("last_code_step", None)
         save_admin(admin)
         print("New authenticator app connected; the old one no longer works.")
+    elif cmd == "update":
+        from . import publish
+        print(publish.update_from_origin())
+    elif cmd == "build":
+        from . import publish
+        with publish.build_lock():
+            publish._release(publish.git("rev-parse", "HEAD").strip())
+        print(publish.job.message)
     else:
         print(__doc__)
 

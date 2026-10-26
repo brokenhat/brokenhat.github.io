@@ -28,6 +28,9 @@ WWW = _path("CMS_WWW", INSTANCE / "www")
 RACO = os.environ.get("CMS_RACO", "raco")
 # git author of commits made by the CMS
 AUTHOR = os.environ.get("CMS_AUTHOR", "Dominik Zarzycki (CMS) <domino.zarzycki@gmail.com>")
+# on the server: after a publish, push the commit to the repository the
+# checkout came from (where code updates arrive too)
+PUSH = os.environ.get("CMS_PUSH", "0") == "1"
 # https in production: cookies only over https
 SECURE_COOKIES = os.environ.get("CMS_SECURE_COOKIES", "0") == "1"
 # Claude, for suggested alt text and descriptions (optional)

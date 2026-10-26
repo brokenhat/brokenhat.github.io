@@ -1,0 +1,20 @@
+#!/bin/sh
+# site.git hook: code pushed by a person rebuilds the live site (and
+# restarts the admin when its code changed). The CMS's own publishes
+# push here too - it builds those itself, so they are skipped.
+[ "$(id -un)" = dominikart ] && exit 0
+restart=no
+while read old new ref; do
+  [ "$ref" = refs/heads/main ] || continue
+  if [ "$old" = 0000000000000000000000000000000000000000 ] ||
+     git diff --name-only "$old" "$new" | grep -q '^cms/'; then
+    restart=yes
+  fi
+done
+echo "rebuilding the site in the background (log: /srv/dominik-art/instance/update.log)"
+(
+  # as dominikart, so the log can sit in its private folder
+  sudo -n -u dominikart sh -c 'exec >>/srv/dominik-art/instance/update.log 2>&1; date; /srv/dominik-art/bin/update update' \
+    </dev/null
+  if [ $restart = yes ]; then sudo -n systemctl restart dominik-art-cms; fi
+) </dev/null >/dev/null 2>&1 &
