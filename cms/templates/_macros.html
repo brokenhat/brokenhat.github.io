@@ -32,6 +32,7 @@
     <legend>In Google</legend>
     {{ field('seo_title', 'Search title', d.get('seo_title'), 'leave empty for "' ~ default_title ~ ' — Dominik Zarzycki"', attrs='data-count="60"') }}
     {{ textarea('description', 'Search description', d.get('description'), 'one or two sentences about the page; about 150 characters', rows=3) }}
+    {% if ai_enabled() %}<button type="button" class="small" data-suggest-desc title="Claude reads this page and suggests one">Suggest a description</button>{% endif %}
   </fieldset>
 {% endmacro %}
 

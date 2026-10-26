@@ -9,7 +9,7 @@ from flask import (Blueprint, Response, abort, flash, jsonify, redirect,
                    render_template, request, send_file, url_for)
 from markupsafe import Markup
 
-from . import config, content, images, publish
+from . import ai, config, content, images, publish
 from .auth import login_required
 
 bp = Blueprint("main", __name__, url_prefix="/admin")
@@ -283,6 +283,29 @@ def preview(path: str):
         html = _prefix_html(html).replace("</body>", banner + "</body>", 1)
         return Response(html, mimetype="text/html", headers={"X-Preview": "1"})
     return send_file(target, mimetype=mimetypes.guess_type(target.name)[0], max_age=0)
+
+
+# ─── suggestions from Claude ─────────────────────────────────────────────
+
+@bp.route("/suggest/alt", methods=["POST"])
+@login_required
+def suggest_alt():
+    data = request.get_json(silent=True) or {}
+    try:
+        return jsonify(ok=True, text=ai.alt_text(str(data.get("path", "")), str(data.get("context", ""))[:300]))
+    except ai.Unavailable as e:
+        return jsonify(ok=False, error=str(e))
+
+
+@bp.route("/suggest/description", methods=["POST"])
+@login_required
+def suggest_description():
+    data = request.get_json(silent=True) or {}
+    try:
+        return jsonify(ok=True, text=ai.page_description(str(data.get("title", ""))[:300],
+                                                         str(data.get("details", ""))))
+    except ai.Unavailable as e:
+        return jsonify(ok=False, error=str(e))
 
 
 # ─── publish, history, undo ──────────────────────────────────────────────

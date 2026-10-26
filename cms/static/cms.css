@@ -168,7 +168,9 @@ button.link { border: 0; background: none; padding: 0.45rem 0; color: var(--mute
 .img-card img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: contain; background: #ece6dc; border-radius: 4px; margin-bottom: 0.5rem; }
 .img-card label { margin-bottom: 0.5rem; font-size: 0.8rem; }
 .img-card textarea, .img-card input { font-size: 0.85rem; padding: 0.4rem 0.5rem; }
-.card-actions { display: flex; justify-content: flex-end; }
+.card-actions { display: flex; justify-content: flex-end; gap: 0.4rem; }
+fieldset.seo [data-suggest-desc] { margin: -0.4rem 0 1rem; }
+button.thinking { opacity: 0.6; pointer-events: none; }
 
 .handle {
   cursor: grab;

@@ -136,6 +136,10 @@
         addNumbered(form, 'sections', '[data-sections]', '[data-section-template]');
       } else if (t.closest('[data-add-group]')) {
         addNumbered(form, 'groups', '[data-groups]', '[data-group-template]');
+      } else if (t.closest('[data-suggest-alt]')) {
+        suggestAlt(t.closest('[data-suggest-alt]'));
+      } else if (t.closest('[data-suggest-desc]')) {
+        suggestDescription(form, t.closest('[data-suggest-desc]'));
       } else if (t.closest('[data-preview]')) {
         saveAndPreview(form, t.closest('[data-preview]').dataset.preview);
       }
@@ -185,6 +189,61 @@
         if (win) win.close();
         flash('Something went wrong: ' + err.message);
       });
+  }
+
+  /* ── suggestions from Claude ────────────────────────────────────── */
+
+  function ask(url, body, button, done) {
+    const label = button.textContent;
+    button.textContent = 'Thinking…';
+    button.classList.add('thinking');
+    fetch(url, { method: 'POST', body: JSON.stringify(body),
+                 headers: { 'X-CSRFToken': csrf, 'Content-Type': 'application/json' } })
+      .then(function (r) { return r.json(); })
+      .then(function (res) {
+        if (!res.ok) throw new Error(res.error);
+        done(res.text);
+        dirty = true;
+      })
+      .catch(function (err) { flash(err.message || 'No suggestion this time.'); })
+      .finally(function () {
+        button.textContent = label;
+        button.classList.remove('thinking');
+      });
+  }
+
+  // fill a field, but ask before replacing something already written
+  function fill(field, text) {
+    if (field.value.trim() && field.value.trim() !== text &&
+        !window.confirm('Replace what is there with:\n\n' + text)) return;
+    field.value = text;
+    field.dispatchEvent(new Event('input', { bubbles: true }));
+    field.focus();
+  }
+
+  function pageTitle() {
+    const t = document.querySelector('[data-editor] input[name="title"]');
+    return t ? t.value : document.title;
+  }
+
+  function suggestAlt(button) {
+    const card = button.closest('.img-card');
+    ask('/admin/suggest/alt', { path: button.dataset.suggestAlt, context: pageTitle() }, button,
+        function (text) { fill(card.querySelector('[data-alt]'), text); });
+  }
+
+  function suggestDescription(form, button) {
+    // the page's own words: its text fields, details and picture descriptions
+    const parts = [];
+    form.querySelectorAll('textarea[name="text"], textarea[name="text_pl"], textarea[name="intro"], ' +
+                          '.grid2 input, input[name="subtitle"], [data-alt]').forEach(function (f) {
+      const v = f.value.trim();
+      if (!v) return;
+      const label = f.closest('label');
+      parts.push((label ? label.firstChild.textContent.trim() + ': ' : '') + v);
+    });
+    ask('/admin/suggest/description', { title: pageTitle(), details: parts.join('\n') }, button,
+        function (text) { fill(form.querySelector('textarea[name="description"]'), text); });
   }
 
   /* ── small things ────────────────────────────────────────────────── */

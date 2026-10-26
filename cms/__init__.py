@@ -51,6 +51,8 @@ def create_app():
     app.register_blueprint(auth.bp)
     app.register_blueprint(views.bp)
     app.jinja_env.globals["nav_pages"] = content.pages
+    from . import ai
+    app.jinja_env.globals["ai_enabled"] = ai.enabled
 
     @app.route("/admin")
     def admin_root():

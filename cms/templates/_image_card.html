@@ -11,6 +11,7 @@
     <input type="hidden" name="{{ prefix }}-caption" value="{{ img.get('caption', '') }}">
   {% endif %}
   <div class="card-actions">
+    {% if ai_enabled() %}<button type="button" class="small" data-suggest-alt="{{ url }}/{{ img.file }}" title="Claude looks at the photo and suggests a description">Suggest</button>{% endif %}
     <button type="button" class="small" data-remove>Remove</button>
   </div>
 </div>

@@ -1,0 +1,10 @@
+# the CMS's Python packages (installed in cms/.venv; Python 3.10+)
+flask>=3.1,<4
+flask-wtf>=1.2,<2
+argon2-cffi>=23.1
+pyotp>=2.9,<3
+qrcode[pil]>=8.0
+pillow>=11
+pyyaml>=6.0,<7
+gunicorn>=23
+anthropic>=2.3,<3
